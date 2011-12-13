@@ -1,12 +1,16 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    bson (1.5.1)
+    bson_ext (1.5.1)
     flay (1.4.3)
       ruby_parser (~> 2.0)
       sexp_processor (~> 3.0)
     flog (2.5.3)
       ruby_parser (~> 2.0)
       sexp_processor (~> 3.0)
+    mongo (1.5.1)
+      bson (= 1.5.1)
     ruby_parser (2.3.1)
       sexp_processor (~> 3.0)
     sexp_processor (3.0.9)
@@ -16,6 +20,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bson_ext
   flay
   flog
+  mongo
   sqlite3
