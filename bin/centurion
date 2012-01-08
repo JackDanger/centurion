@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 if directory = ARGV.first
   root_path = File.expand_path directory
 else
@@ -5,4 +7,7 @@ else
   exit
 end
 
+require 'bundler'
 Bundler.setup :default
+require 'centurion'
+Centurion.new(root_path).meter(ARGV[2] || 'HEAD')
