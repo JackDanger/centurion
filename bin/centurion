@@ -3,7 +3,7 @@
 if directory = ARGV.first
   root_path = File.expand_path directory
 else
-  puts 'USAGE: evaluate.rb /some/app'
+  puts 'USAGE: centurion /some/ruby/app'
   exit
 end
 
