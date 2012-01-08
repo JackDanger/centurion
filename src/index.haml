@@ -34,16 +34,6 @@
     .container-fluid
       .sidebar
         .well
-          %h5 Project Files
-          %ul
-            %li
-              %a{:href => "#"} Link
-            %li
-              %a{:href => "#"} Link
-            %li
-              %a{:href => "#"} Link
-            %li
-              %a{:href => "#"} Link
       .content
         %footer
         %p
@@ -51,3 +41,13 @@
           = succeed "," do
             %a{:href => "http://j\303\245ck.com"} Jack Danger Canty
           2012
+  %script#projects-template{:type => 'text/template'}
+    %h5 Project Files
+  %script#filelist-template{:type => 'text/template'}
+    %ul#filelist
+  %script#file-template{:type => 'text/template'}
+    %li
+      %a{:href => "#"}<%= name %>
+  %script#projects-template{:type => 'text/template'}
+    %h2 Projects
+    %ul#projects

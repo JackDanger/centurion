@@ -44,23 +44,7 @@
     </div>
     <div class='container-fluid'>
       <div class='sidebar'>
-        <div class='well'>
-          <h5>Project Files</h5>
-          <ul>
-            <li>
-              <a href='#'>Link</a>
-            </li>
-            <li>
-              <a href='#'>Link</a>
-            </li>
-            <li>
-              <a href='#'>Link</a>
-            </li>
-            <li>
-              <a href='#'>Link</a>
-            </li>
-          </ul>
-        </div>
+        <div class='well'></div>
       </div>
       <div class='content'>
         <footer></footer>
@@ -72,4 +56,19 @@
       </div>
     </div>
   </body>
+  <script id='projects-template' type='text/template'>
+    <h5>Project Files</h5>
+  </script>
+  <script id='filelist-template' type='text/template'>
+    <ul id='filelist'></ul>
+  </script>
+  <script id='file-template' type='text/template'>
+    <li>
+      <a href='#'>%= name %></a>
+    </li>
+  </script>
+  <script id='projects-template' type='text/template'>
+    <h2>Projects</h2>
+    <ul id='projects'></ul>
+  </script>
 </html>

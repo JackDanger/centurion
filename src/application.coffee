@@ -27,15 +27,14 @@
 
   ProjectsView = Backbone.View.extend
     tagname: 'section'
-    className: 'projects',
-    template: '#projects-template',
+    className: 'projects'
+    template: '#projects-template'
 
     initialize: ->
       _.bindAll(this, 'render')
       this.template
       this.initializeTemplate()
       this.collection.bind('reset', this.render)
-    ,
 
     render: ->
 
