@@ -20,6 +20,10 @@ rule '.html' => ['%{public,src}X.haml'] do |t|
   sh "haml #{t.prerequisites.join(' ')} > #{t.name}"
 end
 
+task :watch do
+  `bundle exec watchr -e "watch('src/*') { %x{rake} }"`
+end
+
 task :public => Coffee
 task :public => Haml
 task :default => :public
