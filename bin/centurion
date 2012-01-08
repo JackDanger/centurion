@@ -1,0 +1,8 @@
+if directory = ARGV.first
+  root_path = File.expand_path directory
+else
+  puts 'USAGE: evaluate.rb /some/app'
+  exit
+end
+
+Bundler.setup :default
