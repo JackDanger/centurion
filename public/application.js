@@ -1,7 +1,7 @@
 (function() {
 
   (function($) {
-    var Barker, Project, ProjectView, Projects, ProjectsView, projects;
+    var Centurion, Project, ProjectView, Projects, ProjectsView, projects;
     Project = Backbone.Model.extend;
     Projects = Backbone.Collection.extend({
       model: Project,
@@ -53,10 +53,12 @@
         return this.template = _.template($(this.template).html());
       }
     });
-    Barker = Backbone.Router.extend({
+    Centurion = Backbone.Router.extend({
       routes: {
         '': 'home',
-        'test': 'route_test'
+        'projects': 'projects',
+        'projects/:name': 'project',
+        'projects/:name/:file': 'file'
       },
       initialize: function() {
         return this.projectsView = new ProjectsView({
@@ -68,12 +70,18 @@
         container = $('#container');
         return container.empty().append(this.projectsView.render().el);
       },
-      route_test: function() {
-        return $('#container').empty().text('test successful');
+      projects: function() {
+        return $('#container').empty().text('projects');
+      },
+      project: function() {
+        return $('#container').empty().text('project');
+      },
+      file: function() {
+        return $('#container').empty().text('file');
       }
     });
     return $(function() {
-      window.App = new Barker();
+      window.App = new Centurion();
       Backbone.history.start();
       if ($.trim($('#where').val()) === '') findMe();
       return $("form").submit(function() {

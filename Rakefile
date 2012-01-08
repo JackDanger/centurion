@@ -2,11 +2,24 @@ require "bundler/gem_tasks"
 
 require 'rake/clean'
 
-directory 'js'
-CLEAN.include 'public/script.js'
+directory 'public'
 
-file 'public/script.js' => Dir.glob('js/*.coffee') do |t|
-  sh "coffee --compile --join public/script.js #{t.prerequisites.join(' ')}"
+Coffee = FileList['src/*.coffee'].pathmap("%{src,public}X.js")
+Haml   = FileList['src/*.haml'].pathmap("%{src,public}X.html")
+
+CLEAN.include Haml
+CLEAN.include Coffee
+
+desc "Compile coffescript files"
+rule '.js' => ['%{public,src}X.coffee'] do |t|
+  sh "coffee --compile --join #{t.name} #{t.prerequisites.join(' ')}"
 end
 
-task :default => 'public/script.js'
+desc "Compile html files"
+rule '.html' => ['%{public,src}X.haml'] do |t|
+  sh "haml #{t.prerequisites.join(' ')} > #{t.name}"
+end
+
+task :public => Coffee
+task :public => Haml
+task :default => :public
