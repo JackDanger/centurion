@@ -7,7 +7,5 @@ else
   exit
 end
 
-require 'bundler'
-Bundler.setup :default
 require 'centurion'
-Centurion.new(root_path).meter(ARGV[2] || 'HEAD')
+Centurion.new(root_path).meter(ARGV[4] || 'HEAD')
