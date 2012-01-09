@@ -6,11 +6,15 @@ class Centurion
 
   attr_accessor :project_root, :repo, :store
 
+  def self.db
+    @db ||= Mongo::Connection.new.db("centurion")
+  end
+
   def initialize project_root
     @project_root = project_root
     @repo  = Grit::Repo.new project_root
     project_name = File.basename project_root
-    @store = Mongo::Connection.new.db("centurion").collection(project_name)
+    @store = Centurion.db.collection(project_name)
   end
 
   def meter ref
