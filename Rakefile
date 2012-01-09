@@ -21,7 +21,7 @@ rule '.html' => ['%{public,src}X.haml'] do |t|
 end
 
 task :watch do
-  `bundle exec watchr -e "watch('src/*') { %x{rake} }"`
+  `bundle exec watchr -e "watch('src/*') { %x{rake && touch config.ru} }"`
 end
 
 task :public => Coffee

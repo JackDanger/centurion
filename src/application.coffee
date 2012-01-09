@@ -65,23 +65,23 @@
         collection: projects
 
     home: ->
-      container = $('#container')
-      container
+      console.log this.projectsView.render().el
+      content
         .empty()
         .append(this.projectsView.render().el)
 
     projects: ->
-      $('#container')
+      content
         .empty()
         .text('projects')
 
     project: ->
-      $('#container')
+      content
         .empty()
         .text('project')
 
     file: ->
-      $('#container')
+      content
         .empty()
         .text('file')
 
@@ -89,15 +89,9 @@
   $ ->
 
     window.App = new Centurion()
+    window.content = $('#content')
+    window.sidebar = $('#sidebar')
     Backbone.history.start()
 
-    # Geocode into an empty 'where' input
-    if ($.trim($('#where').val()) == '')
-      findMe()
-
-    # search form uses Backbone
-    $("form").submit ->
-      projects.fetch()
-      return false
 
 )(jQuery)

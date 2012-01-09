@@ -66,28 +66,24 @@
         });
       },
       home: function() {
-        var container;
-        container = $('#container');
-        return container.empty().append(this.projectsView.render().el);
+        console.log(this.projectsView.render().el);
+        return content.empty().append(this.projectsView.render().el);
       },
       projects: function() {
-        return $('#container').empty().text('projects');
+        return content.empty().text('projects');
       },
       project: function() {
-        return $('#container').empty().text('project');
+        return content.empty().text('project');
       },
       file: function() {
-        return $('#container').empty().text('file');
+        return content.empty().text('file');
       }
     });
     return $(function() {
       window.App = new Centurion();
-      Backbone.history.start();
-      if ($.trim($('#where').val()) === '') findMe();
-      return $("form").submit(function() {
-        projects.fetch();
-        return false;
-      });
+      window.content = $('#content');
+      window.sidebar = $('#sidebar');
+      return Backbone.history.start();
     });
   })(jQuery);
 

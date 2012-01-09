@@ -34,6 +34,8 @@ GEM
     ruby_parser (2.3.1)
       sexp_processor (~> 3.0)
     sexp_processor (3.0.10)
+    shotgun (0.9)
+      rack (>= 1.0)
     watchr (0.7)
 
 PLATFORMS
@@ -43,4 +45,5 @@ DEPENDENCIES
   centurion!
   haml
   rake
+  shotgun
   watchr
