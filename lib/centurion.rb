@@ -39,7 +39,7 @@ class Centurion
     @files ||= begin
       found = Dir.glob File.join(project_root, '**/*.rb')
       warn "No Ruby source files found in #{project_root}!" if found.empty?
-      found
+      found.map {|file| file.sub(/^#{project_root}\//, '') }
     end
   end
 end
