@@ -5,32 +5,34 @@ require 'rake/clean'
 directory 'public'
 directory 'build'
 
-Application = "%{src,build}X.js"
-Web         = "%{src/public,public}X.js"
-Haml        = "%{src/public,public}X.html"
-MakeScript  = FileList['src/*.coffee'].pathmap(Application) +
-              FileList['src/public/*.coffee'].pathmap(Web)
-MakeHtml    = FileList['src/**/*.haml'].pathmap(Haml)
-p MakeScript
-p MakeHtml
+Application = FileList['src/*.coffee'].pathmap("%{src,build}X.js")
+Web         = FileList['src/public/*.coffee'].pathmap("%{src/public,public}X.js")
+Haml        = FileList['src/*.haml'].pathmap("%{src,public}X.html")
 
-CLEAN.include MakeHtml
-CLEAN.include MakeScript
+CLEAN.include Application
+CLEAN.include Web
+CLEAN.include Haml
 
-desc "Compile coffescript files"
-rule '.js' => ['%{build,src}X.js', '%{public,src/public}X.js'] do |t|
+desc "Compile Application Coffeescript files"
+rule '.js' => ['%{build,src}X.coffee'] do |t|
+  sh "coffee --compile -o #{File.dirname t.name} #{t.prerequisites.join(' ')}"
+end
+
+desc "Compile Web Coffeescript files"
+rule '.js' => ['%{public,src/public}X.coffee'] do |t|
   sh "coffee --compile --join #{t.name} #{t.prerequisites.join(' ')}"
 end
 
 desc "Compile html files"
-rule '.html' => ['%{public,src/public}X.html'] do |t|
+rule '.html' => ['%{public,src/public}X.haml'] do |t|
   sh "haml #{t.prerequisites.join(' ')} > #{t.name}"
 end
 
 task :watch do
-  `bundle exec watchr -e "watch('src/*') { %x{rake && touch config.ru} }"`
+  `bundle exec watchr -e "watch('src/.*\/?.*') { %x{rake && touch config.ru} }"`
 end
 
-task :public => MakeScript
-task :public => MakeHtml
+task :public => Application
+task :public => Web
+task :public => Haml
 task :default => :public
