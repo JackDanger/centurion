@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-
 if directory = ARGV.first
   root_path = File.expand_path directory
 else
@@ -8,4 +7,4 @@ else
 end
 
 require 'centurion'
-Centurion.new(root_path).meter(ARGV[4] || 'HEAD')
+Centurion::Collector.new(root_path).meter(ARGV[4] || 'HEAD')

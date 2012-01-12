@@ -27,6 +27,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rack', '1.4.0'
   s.add_runtime_dependency 'flay'
   s.add_runtime_dependency 'grit'
-  s.add_runtime_dependency 'bson_ext'
-  s.add_runtime_dependency 'mongo'
+  s.add_runtime_dependency 'json'
+  s.add_runtime_dependency 'riak-client'
 end

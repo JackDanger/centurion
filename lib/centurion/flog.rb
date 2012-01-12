@@ -1,5 +1,5 @@
 require 'flog'
-class Centurion
+module Centurion
   class Flog
 
     attr_accessor :file, :commit
