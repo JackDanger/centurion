@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'watchr'
   s.add_development_dependency 'shotgun'
   s.add_runtime_dependency 'flog'
+  s.add_runtime_dependency 'clip'
   s.add_runtime_dependency 'rack', '1.4.0'
   s.add_runtime_dependency 'flay'
   s.add_runtime_dependency 'grit'

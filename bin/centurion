@@ -1,10 +1,21 @@
 #!/usr/bin/env ruby
-if directory = ARGV.first
+
+require "clip"
+
+options = Clip do |c|
+  c.banner = 'USAGE: centurion /some/ruby/app'
+  c.optional 'r', 'commit_range', :desc => 'A git commit or range of commits to process'
+  c.flag 'v', 'verbose', :desc => 'Make it chatty'
+end
+
+if directory = options.remainder.shift
   root_path = File.expand_path directory
-else
-  puts 'USAGE: centurion /some/ruby/app'
-  exit
+end
+
+unless options.valid? && root_path && options.remainder.empty?
+  $stderr.puts options.to_s
+  exit 1
 end
 
 require 'centurion'
-Centurion::Collector.new(root_path).meter(ARGV[4] || 'HEAD')
+Centurion::Collector.new(root_path).meter(ARGV.shift || 'HEAD')
