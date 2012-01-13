@@ -2,16 +2,18 @@ require 'grit'
 module Centurion
   class Collector
 
-    attr_reader :project_root, :repo, :bucket
+    attr_reader :project_root, :project_name,
+                :repo, :bucket
 
     def initialize project_root
       @project_root = project_root
       @repo  = Grit::Repo.new project_root
-      project_name = File.basename project_root
-      @bucket = Centurion.db.bucket(project_name)
+      @project_name = File.basename project_root
+      @bucket = Centurion.db.bucket(@project_name)
     end
 
     def meter ref
+      puts "Collecting #{ref} in #{project_name}"
       files.each_with_index do |file, idx|
         Flog.new(file, commit_data_for(ref)).meter do |data|
           insert data
@@ -22,6 +24,7 @@ module Centurion
 
     def insert data
       key = "#{data[:sha]}:#{data[:file]}:#{data[:method]}"
+      key.gsub!(/[\/\\\^\[\]\{\}\(\)]+/, '-')
       doc = bucket.get_or_new key
       doc.data = data
       doc.content_type = 'application/json'
