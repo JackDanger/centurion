@@ -20,9 +20,10 @@ module Centurion
           :method     => class_method,
           :name       => "#{file}##{class_method}",
           :score      => score,
-          :sha        => commit[:sha],
-          :time       => commit[:time],
-          :author     => commit[:author].to_s,
+          :sha        => commit.sha,
+          :time       => commit.date.to_i,
+          :author     => commit.author.to_s,
+          :parent     => commit.parents.first.sha.to_s,
           :call_list  => Hash[call_list.sort_by { |k,v| -v }.map]
         })
       end

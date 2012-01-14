@@ -15,7 +15,10 @@ if directory = clip.remainder.shift
   options[:project_root] = File.expand_path directory
 end
 options[:verbose] = clip.verbose?
-options[:commit_range] = clip.commit_range
+options[:commit_range] = clip.commit_range.map {|range| range.split('..') }.flatten
+if 1 == options[:commit_range].size
+   options[:commit_range].unshift "#{options[:commit_range].first}^"
+end
 
 unless clip.valid? && options[:project_root] && clip.remainder.empty?
   $stderr.puts clip.to_s

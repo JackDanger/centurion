@@ -15,10 +15,10 @@ module Centurion
     end
 
     def meter
-      each_commit do |ref|
-        puts "Collecting #{ref} in #{project_name}"
-        each_file do |file, idx|
-          Flog.new(file, commit_data_for(ref)).meter do |data|
+      each_commit do |commit|
+        puts "Collecting #{commit} in #{project_name}"
+        files.each_with_index do |file, idx|
+          Flog.new(file, commit).meter do |data|
             insert data
           end
           puts "processed #{idx+1}/#{files.size} - #{file.sub(/^#{project_root}\//,'')}"
@@ -35,27 +35,24 @@ module Centurion
       doc.store
     end
 
-    def commit_data_for ref
-      commit = repo.commit ref
-      {
-        :sha    => commit.sha,
-        :time   => commit.date.to_i,
-        :author => commit.author
-      }
-    end
-
     def each_commit
-      @repo.commits(@commit_range).each do |commit|
+      first, final = @commit_range
+      if 'start' == first
+        commit = @repo.commit final
+        until (commit = commit.parents.first) && commit.parents.blank?
+          first = commit.sha
+        end
+      end
+      @repo.commits_between(first, final).each do |commit|
         yield commit
       end
     end
 
-    def each_file
-      found = Dir.glob File.join(project_root, '**/*.rb')
-      warn "No Ruby source files found in #{project_root}!" if found.empty?
-      found.each_with_index do |file, idx|
-        path = file.sub(/^#{project_root}\//, '')
-        yield path, idx
+    def files
+      @files ||= begin
+        found = Dir.glob File.join(project_root, '**/*.rb')
+        warn "No Ruby source files found in #{project_root}!" if found.empty?
+        found.map {|file| file.sub(/^#{project_root}\//, '') }
       end
     end
   end
