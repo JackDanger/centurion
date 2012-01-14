@@ -32,6 +32,23 @@ task :watch do
   `bundle exec watchr -e "watch('src/.*\/?.*') { %x{rake && touch config.ru} }"`
 end
 
+task :upload do
+  riak = ENV['RIAK'] || 'http://localhost:8098/riak/app'
+
+  Dir.glob("public/*").each do |file|
+    type = case file
+           when /.css$/
+             'text/stylesheet'
+           when /.js$/
+             'text/javascript'
+           when /.html/
+             'text/html'
+           end
+    filename = File.basename file
+    sh "curl -X POST -H Content-Type:#{type} #{riak}/#{filename} --data-binary @#{file}"
+  end
+end
+
 task :public => Application
 task :public => Web
 task :public => Haml
