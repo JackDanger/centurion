@@ -43,13 +43,24 @@
           = succeed "," do
             %a{:href => "http://j\303\245ck.com"} Jack Danger Canty
           2012
+  %script#home-template{:type => 'text/template'}
+    #home
+      %h1 Centurion
+      %h3 Listen to your code
+      %p
+        There are ways of determining when your Ruby project has gone off track.
+        Cyclic complexity is one of them. Pay attention to the parts of your code
+        that are hurting from complexity.
   %script#project-template{:type => 'text/template'}
-    %h5 Project Files
-  %script#filelist-template{:type => 'text/template'}
-    %ul#filelist
-  %script#file-template{:type => 'text/template'}
-    %li
-      %a{:href => "#"}<%= name %>
+    #project
+      %h5 Project Files
   %script#projects-template{:type => 'text/template'}
-    %h2 Projects
-    %ul#projects
+    #projects
+      %h2 Projects
+      %ul#projects
+        <% _.each(projects, function(project) { %> <li><a href="#projects/<%= project.name %>"><%= project.name %></a></li> <% }); %>
+  %script#filelist-template{:type => 'text/template'}
+    %ul.filelist
+  %script#file-template{:type => 'text/template'}
+    %li.file
+      %a{:href => "#"}<%= name %>

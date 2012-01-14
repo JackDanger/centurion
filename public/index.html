@@ -59,19 +59,36 @@
       </div>
     </div>
   </body>
+  <script id='home-template' type='text/template'>
+    <div id='home'>
+      <h1>Centurion</h1>
+      <h3>Listen to your code</h3>
+      <p>
+        There are ways of determining when your Ruby project has gone off track.
+        Cyclic complexity is one of them. Pay attention to the parts of your code
+        that are hurting from complexity.
+      </p>
+    </div>
+  </script>
   <script id='project-template' type='text/template'>
-    <h5>Project Files</h5>
-  </script>
-  <script id='filelist-template' type='text/template'>
-    <ul id='filelist'></ul>
-  </script>
-  <script id='file-template' type='text/template'>
-    <li>
-      <a href='#'>%= name %></a>
-    </li>
+    <div id='project'>
+      <h5>Project Files</h5>
+    </div>
   </script>
   <script id='projects-template' type='text/template'>
-    <h2>Projects</h2>
-    <ul id='projects'></ul>
+    <div id='projects'>
+      <h2>Projects</h2>
+      <ul id='projects'>
+        <% _.each(projects, function(project) { %> <li><a href="#projects/<%= project.name %>"><%= project.name %></a></li> <% }); %>
+      </ul>
+    </div>
+  </script>
+  <script id='filelist-template' type='text/template'>
+    <ul class='filelist'></ul>
+  </script>
+  <script id='file-template' type='text/template'>
+    <li class='file'>
+      <a href='#'>%= name %></a>
+    </li>
   </script>
 </html>

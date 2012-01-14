@@ -1,12 +1,15 @@
 (($) ->
 
   Project = Backbone.Model.extend
+    initialize: (a,b) -> console.log 'initialized project', a,b
 
   Projects = Backbone.Collection.extend
 
     model: Project
-    url: '/projects'
-    parse: (response, xhr) -> response.businesses
+    url: '/riak?buckets=true'
+    parse: (response, xhr) ->
+      console.log 'response: ', response, response.buckets
+      _.map response.buckets, (bucket) -> {name: bucket}
 
   projects = new Projects()
 
@@ -22,36 +25,28 @@
       this.template = _.template($('#project-template').html())
 
     render: ->
+      console.log 'project/render: element', this.el, this.model
+      console.log 'project/render: attributes', this.model.attributes
+      console.log 'project/render: template', this.template(this.model.attributes)
       $(this.el).html(this.template(this.model.toJSON()))
-      return this
+      this
 
   ProjectsView = Backbone.View.extend
     tagname: 'section'
     className: 'projects'
     template: '#projects-template'
+    collection: Projects
 
     initialize: ->
+      console.log 'initializing ProjectsView', this.collection
       _.bindAll(this, 'render')
-      this.template
-      this.initializeTemplate()
+      this.template = _.template($(this.template).html())
       this.collection.bind('reset', this.render)
 
     render: ->
-
-      collection = this.collection
-
-      $(this.el).html(this.template({}))
-
-      projects = this.$('.projects')
-      collection.each (project) ->
-        view = new ProjectView
-          model: project,
-          collection: collection
-        $projects.append(view.render().el)
+      $element = $(this.el)
+      $element.html(this.template({projects: this.collection.toJSON()}))
       this
-
-    initializeTemplate: ->
-      this.template = _.template($(this.template).html())
 
   Centurion = Backbone.Router.extend
     routes:
@@ -63,17 +58,21 @@
     initialize: ->
       this.projectsView = new ProjectsView
         collection: projects
+      projects.fetch()
 
     home: ->
-      console.log this.projectsView.render().el
+      this.projectsView.render().el
+      console.log project.length
+      template = _.template($("#home-template").html())
       content
         .empty()
+        .append(template({project_size: projects.length}))
         .append(this.projectsView.render().el)
 
     projects: ->
       content
         .empty()
-        .text('projects')
+        .append(this.projectsView.render().el)
 
     project: ->
       content
@@ -92,6 +91,10 @@
     window.content = $('#content')
     window.sidebar = $('#sidebar')
     Backbone.history.start()
+    # this.projectsView = new ProjectsView
+    #   collection: projects
+    # projects.fetch()
+
 
 
 )(jQuery)

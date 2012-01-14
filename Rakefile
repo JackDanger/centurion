@@ -21,7 +21,7 @@ rule '.html' => ['%{public,src}X.haml'] do |t|
 end
 
 task :watch do
-  sh %Q[bundle exec watchr -e "watch('src/.*') { %x{rake} }"]
+  exec %Q[bundle exec watchr -e "watch('src/.*') { %x{rake public upload} }"]
 end
 
 task :upload do
@@ -37,7 +37,7 @@ task :upload do
              'text/html'
            end
     filename = File.basename file
-    sh "curl -X POST -H Content-Type:#{type} #{riak}/#{filename} --data-binary @#{file}"
+    sh "curl -s -X POST -H Content-Type:#{type} #{riak}/#{filename} --data-binary @#{file}"
   end
 end
 
