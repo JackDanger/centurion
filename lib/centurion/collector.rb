@@ -6,7 +6,6 @@ module Centurion
                 :repo, :bucket
 
     def initialize options
-      p options
       @project_root = options[:project_root]
       @commit_range = options[:commit_range]
       @repo  = Grit::Repo.new project_root
