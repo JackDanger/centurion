@@ -1,100 +1,111 @@
-(($) ->
 
-  Project = Backbone.Model.extend
-    initialize: (a,b) -> console.log 'initialized project', a,b
+getFiles = (projectName, callback) ->
+  mapper = new RiakMapper Riak, this.name
+  mapper.map source: (data) -> [Riak.mapValuesJson(data)[0].file]
+  mapper.reduce
+    source: (filenames) ->
+      seen = {}
+      unique = []
+      for file in filenames
+        unless seen[file]
+          seen[file] = true
+          unique.push file
+      unique
+  mapper.run (ok, filenames, xhr) ->
+    callback _.map(filenames, (filename) -> {filename: filename})
 
-  Projects = Backbone.Collection.extend
+Project = Backbone.Model.extend()
 
-    model: Project
-    url: '/riak?buckets=true'
-    parse: (response, xhr) ->
-      console.log 'response: ', response, response.buckets
-      _.map response.buckets, (bucket) -> {name: bucket}
+ProjectView = Backbone.View.extend
 
-  projects = new Projects()
+  className: 'project'
+  template: '#project-template'
+  model: Project
 
-  ProjectView = Backbone.View.extend
+  initialize: ->
+    this.template = _.template $('#project-template').html()
 
-    className: 'project'
-    template: '#project-template'
+  render: ->
+    $element = $(this.el)
+    $element.html this.template(this.model.toJSON())
+    this
 
-    initialize: ->
-      _.bindAll(this, 'render')
-      this.model.bind('change', this.render)
+Projects = Backbone.Collection.extend
 
-      this.template = _.template($('#project-template').html())
+  model: Project
+  url: '/riak?buckets=true'
+  parse: (response, xhr) ->
+    _.map response.buckets, (bucket) -> {name: bucket}
 
-    render: ->
-      console.log 'project/render: element', this.el, this.model
-      console.log 'project/render: attributes', this.model.attributes
-      console.log 'project/render: template', this.template(this.model.attributes)
-      $(this.el).html(this.template(this.model.toJSON()))
-      this
+ProjectsView = Backbone.View.extend
+  tagname: 'section'
+  className: 'projects'
+  template: '#projects-template'
+  collection: Projects
 
-  ProjectsView = Backbone.View.extend
-    tagname: 'section'
-    className: 'projects'
-    template: '#projects-template'
-    collection: Projects
+  initialize: ->
+    _.bindAll(this, 'render')
+    this.template = _.template($(this.template).html())
+    this.collection.bind('reset', this.render)
 
-    initialize: ->
-      console.log 'initializing ProjectsView', this.collection
-      _.bindAll(this, 'render')
-      this.template = _.template($(this.template).html())
-      this.collection.bind('reset', this.render)
+  render: ->
+    $element = $(this.el)
+    $element.html(this.template({projects: this.collection}))
+    this
 
-    render: ->
-      $element = $(this.el)
-      $element.html(this.template({projects: this.collection.toJSON()}))
-      this
+Centurion = Backbone.Router.extend
+  routes:
+    '': 'home'
+    'projects': 'projects'
+    'projects/:name': 'project'
+    'projects/:name/:source': 'source'
 
-  Centurion = Backbone.Router.extend
-    routes:
-      '': 'home'
-      'projects': 'projects'
-      'projects/:name': 'project'
-      'projects/:name/:file': 'file'
+  initialize: ->
 
-    initialize: ->
-      this.projectsView = new ProjectsView
-        collection: projects
-      projects.fetch()
+  home: ->
+    projectsView = new ProjectsView
+      collection: projects
+    projects.fetch()
+    template = _.template($("#home-template").html())
+    content
+      .empty()
+      .append(template({project_size: projects.length}))
+    sidebar
+      .empty()
+      .append(projectsView.render().el)
 
-    home: ->
-      this.projectsView.render().el
-      console.log project.length
-      template = _.template($("#home-template").html())
-      content
-        .empty()
-        .append(template({project_size: projects.length}))
-        .append(this.projectsView.render().el)
+  projects: ->
+    projectsView = new ProjectsView
+      collection: projects
+    projects.fetch()
+    content
+      .empty()
+      .append(projectsView.render().el)
 
-    projects: ->
-      content
-        .empty()
-        .append(this.projectsView.render().el)
+  project: (name) ->
+    projectView = new ProjectView
+      model: new Project({name: name})
+    content
+      .empty()
+      .append(projectView.render().el)
 
-    project: ->
-      content
-        .empty()
-        .text('project')
+  source: ->
+    content
+      .empty()
+      .text('source')
 
-    file: ->
-      content
-        .empty()
-        .text('file')
+# OnReady
+$ ->
+  window.Riak = new RiakClient '/riak', '/mapred'
+  window.App = new Centurion()
+  window.content = $('#content')
+  window.sidebar = $('#sidebar')
+  window.projects = new Projects()
 
-  # OnReady
-  $ ->
-
-    window.App = new Centurion()
-    window.content = $('#content')
-    window.sidebar = $('#sidebar')
-    Backbone.history.start()
-    # this.projectsView = new ProjectsView
-    #   collection: projects
-    # projects.fetch()
-
+  Backbone.history.start()
+  # this.projectsView = new ProjectsView
+  #   collection: projects
+  # projects.fetch()
 
 
-)(jQuery)
+

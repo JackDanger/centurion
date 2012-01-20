@@ -12,7 +12,7 @@ CLEAN.include Haml
 
 desc "Compile Application Coffeescript files"
 rule '.js' => ['%{public,src}X.coffee'] do |t|
-  sh "coffee --compile -o #{File.dirname t.name} #{t.prerequisites.join(' ')}"
+  sh "coffee --compile --bare -o #{File.dirname t.name} #{t.prerequisites.join(' ')}"
 end
 
 desc "Compile html files"
