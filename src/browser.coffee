@@ -1,20 +1,34 @@
 
-getFiles = (projectName, callback) ->
-  mapper = new RiakMapper Riak, this.name
-  mapper.map source: (data) -> [Riak.mapValuesJson(data)[0].file]
-  mapper.reduce
-    source: (filenames) ->
-      seen = {}
-      unique = []
-      for file in filenames
-        unless seen[file]
-          seen[file] = true
-          unique.push file
-      unique
-  mapper.run (ok, filenames, xhr) ->
-    callback _.map(filenames, (filename) -> {filename: filename})
 
-Project = Backbone.Model.extend()
+Source = Backbone.Model.extend()
+
+SourceList = Backbone.Collection.extend
+  model: Source
+  fetch: () ->
+    collection = this
+    mapper = new RiakMapper Riak, this.project.get('name')
+    mapper.map source: (data) -> [Riak.mapValuesJson(data)[0].file]
+    mapper.reduce
+      source: (filenames) ->
+        seen = {}
+        unique = []
+        for file in filenames
+          unless seen[file]
+            seen[file] = true
+            unique.push file
+        unique
+    mapper.run (ok, filenames, xhr) ->
+      files = _.map(filenames, (filename) -> {filename: filename})
+      collection.add files
+      collection.project.trigger('changed')
+
+
+Project = Backbone.Model.extend
+  initialize: ->
+    console.log this.get('name')
+    this.sourceList = new SourceList()
+    this.sourceList.project = this
+    this.sourceList.fetch()
 
 ProjectView = Backbone.View.extend
 
@@ -24,10 +38,15 @@ ProjectView = Backbone.View.extend
 
   initialize: ->
     this.template = _.template $('#project-template').html()
+    this.model.sourceList.bind 'add', this.render, this
 
   render: ->
+    console.log JSON.stringify(this.model.sourceList.toJSON())
     $element = $(this.el)
-    $element.html this.template(this.model.toJSON())
+    $element.html this.template({
+                    project: this.model.toJSON(),
+                    sourceList: this.model.sourceList.toJSON()
+                  })
     this
 
 Projects = Backbone.Collection.extend
@@ -50,7 +69,7 @@ ProjectsView = Backbone.View.extend
 
   render: ->
     $element = $(this.el)
-    $element.html(this.template({projects: this.collection}))
+    $element.html(this.template({projects: this.collection.toJSON()}))
     this
 
 Centurion = Backbone.Router.extend

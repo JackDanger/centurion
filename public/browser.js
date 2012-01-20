@@ -1,50 +1,71 @@
-var Centurion, Project, ProjectView, Projects, ProjectsView, getFiles;
+var Centurion, Project, ProjectView, Projects, ProjectsView, Source, SourceList;
 
-getFiles = function(projectName, callback) {
-  var mapper;
-  mapper = new RiakMapper(Riak, this.name);
-  mapper.map({
-    source: function(data) {
-      return [Riak.mapValuesJson(data)[0].file];
-    }
-  });
-  mapper.reduce({
-    source: function(filenames) {
-      var file, seen, unique, _i, _len;
-      seen = {};
-      unique = [];
-      for (_i = 0, _len = filenames.length; _i < _len; _i++) {
-        file = filenames[_i];
-        if (!seen[file]) {
-          seen[file] = true;
-          unique.push(file);
-        }
+Source = Backbone.Model.extend();
+
+SourceList = Backbone.Collection.extend({
+  model: Source,
+  fetch: function() {
+    var collection, mapper;
+    collection = this;
+    mapper = new RiakMapper(Riak, this.project.get('name'));
+    mapper.map({
+      source: function(data) {
+        return [Riak.mapValuesJson(data)[0].file];
       }
-      return unique;
-    }
-  });
-  return mapper.run(function(ok, filenames, xhr) {
-    return callback(_.map(filenames, function(filename) {
-      return {
-        filename: filename
-      };
-    }));
-  });
-};
+    });
+    mapper.reduce({
+      source: function(filenames) {
+        var file, seen, unique, _i, _len;
+        seen = {};
+        unique = [];
+        for (_i = 0, _len = filenames.length; _i < _len; _i++) {
+          file = filenames[_i];
+          if (!seen[file]) {
+            seen[file] = true;
+            unique.push(file);
+          }
+        }
+        return unique;
+      }
+    });
+    return mapper.run(function(ok, filenames, xhr) {
+      var files;
+      files = _.map(filenames, function(filename) {
+        return {
+          filename: filename
+        };
+      });
+      collection.add(files);
+      return collection.project.trigger('changed');
+    });
+  }
+});
 
-Project = Backbone.Model.extend();
+Project = Backbone.Model.extend({
+  initialize: function() {
+    console.log(this.get('name'));
+    this.sourceList = new SourceList();
+    this.sourceList.project = this;
+    return this.sourceList.fetch();
+  }
+});
 
 ProjectView = Backbone.View.extend({
   className: 'project',
   template: '#project-template',
   model: Project,
   initialize: function() {
-    return this.template = _.template($('#project-template').html());
+    this.template = _.template($('#project-template').html());
+    return this.model.sourceList.bind('add', this.render, this);
   },
   render: function() {
     var $element;
+    console.log(JSON.stringify(this.model.sourceList.toJSON()));
     $element = $(this.el);
-    $element.html(this.template(this.model.toJSON()));
+    $element.html(this.template({
+      project: this.model.toJSON(),
+      sourceList: this.model.sourceList.toJSON()
+    }));
     return this;
   }
 });
@@ -75,7 +96,7 @@ ProjectsView = Backbone.View.extend({
     var $element;
     $element = $(this.el);
     $element.html(this.template({
-      projects: this.collection
+      projects: this.collection.toJSON()
     }));
     return this;
   }

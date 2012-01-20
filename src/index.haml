@@ -55,15 +55,13 @@
   %script#project-template{:type => 'text/template'}
     #project
       %h5 Project Files
-      .sourcelist
+      %ul.sourcelist
+        <% _.each(sourceList, function(source) { %> <li><a href="#source/<%= source.filename %>"><%= source.filename %></a></li> <% }); %>
   %script#projects-template{:type => 'text/template'}
     #projects
       %h2 Projects
       %ul#projects
         <% _.each(projects, function(project) { %> <li><a href="#projects/<%= project.name %>"><%= project.name %></a></li> <% }); %>
-  %script#sourcelist-template{:type => 'text/template'}
-    %ul.sourcelist
-      <% _.each(sourceList, function(source) { %> <li><a href="#source/<%= source %>"><%= source %></a></li> <% }); %>
   %script#source-template{:type => 'text/template'}
     %li.source
       %a{:href => "#"}<%= name %>
