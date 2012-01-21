@@ -18,7 +18,6 @@ module Centurion
           :total      => whip.total,
           :average    => whip.average,
           :method     => class_method,
-          :name       => "#{file}##{class_method}",
           :score      => score,
           :sha        => commit.sha,
           :time       => commit.date.to_i,

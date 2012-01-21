@@ -2,15 +2,13 @@ require 'grit'
 module Centurion
   class Collector
 
-    attr_reader :project_root, :project_name,
-                :repo, :bucket
+    attr_reader :project_root, :project_name, :repo
 
     def initialize options
       @project_root = options[:project_root]
       @commit_range = options[:commit_range]
       @repo  = Grit::Repo.new project_root
       @project_name = File.basename project_root
-      @bucket = Centurion.db.bucket(project_name)
     end
 
     def meter
@@ -18,20 +16,32 @@ module Centurion
         puts "Collecting #{commit} in #{project_name}"
         files.each_with_index do |file, idx|
           Flog.new(file, commit).meter do |data|
-            insert data
+            insert_flog data
           end
           puts "processed #{idx+1}/#{files.size} - #{file.sub(/^#{project_root}\//,'')}"
         end
+        #updated_index commit
       end
     end
 
-    def insert data
-      key = "#{data[:sha]}:#{data[:file]}:#{data[:method]}"
-      key.gsub!(/[\/\\\^\[\]\{\}\(\)]+/, '-')
-      doc = bucket.get_or_new key
+    def insert_flog data
+      sha    = data[:sha]
+      file   = digest data[:file]
+      method = digest data[:method]
+
+      key = "#{sha}:#{file}:#{method}"
+      doc = flog_bucket.get_or_new key
       doc.data = data
       doc.content_type = 'application/json'
       doc.store
+    end
+
+    def digest string
+      Digest::SHA1.hexdigest(string)[0..6]
+    end
+
+    def flog_bucket
+      Centurion.db.bucket "#{project_name}_flog"
     end
 
     def each_commit
