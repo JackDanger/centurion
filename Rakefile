@@ -20,6 +20,11 @@ rule '.html' => ['%{public,src}X.haml'] do |t|
   sh "haml #{t.prerequisites.join(' ')} > #{t.name}"
 end
 
+desc "Delete all keys from Riak"
+task :delete_all_keys do
+  sh "curl -s http://127.0.0.1:8098/riak/centurion?keys=stream | `which ruby` var/delete_keys.rb"
+end
+
 task :watch do
   exec %Q[bundle exec watchr -e "watch('src/.*') { %x{rake public upload} }"]
 end
