@@ -22,7 +22,8 @@ end
 
 desc "Delete all keys from Riak"
 task :delete_all_keys do
-  sh "curl -s http://127.0.0.1:8098/riak/centurion?keys=stream | `which ruby` var/delete_keys.rb"
+  bucket = ENV['bucket']
+  sh "curl -s http://127.0.0.1:8098/riak/#{bucket}?keys=stream | `which ruby` var/delete_keys.rb"
 end
 
 task :watch do
