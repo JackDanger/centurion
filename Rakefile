@@ -52,6 +52,7 @@ require 'rspec/core/rake_task'
 desc "Run RSpec suite over Ruby half of app"
 RSpec::Core::RakeTask.new :spec do |t|
   t.pattern = FileList['spec/**/*_spec.rb']
+  t.rspec_opts = ['-c']
 end
 
 task :public => Application
