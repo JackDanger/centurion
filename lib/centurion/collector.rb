@@ -23,27 +23,22 @@ module Centurion
         end
         #updated_index commit
       end
-      update_project start, Time.now
+      finish = Time.now
+      update_project  start, finish
+      record_metering start, finish
     end
 
     def update_project start, finish
-      store_in projects_bucket,
-               project_name,
-               :updated_at => finish,
-               :last_duration => finish - start
-      store_in meterings_bucket,
-               "#{project_name}:#{finish.to_i}",
-               :duration => finish - start
+      store_in projects_bucket, project_name, :updated_at => finish,
+                                              :last_duration => finish - start
+    end
+
+    def record_metering start, finish
+      store_in meters_bucket, meter_key(finish), :duration => finish - start
     end
 
     def insert_flog data
-      sha    = data[:sha]
-      file   = digest data[:file]
-      method = digest data[:method]
-
-      key = "#{sha}:#{file}:#{method}"
-
-      store_in flog_bucket, key, data
+      store_in flogs_bucket, flog_key(data), data
     end
 
     def store_in bucket, key, data
@@ -57,12 +52,23 @@ module Centurion
       Digest::SHA1.hexdigest(string)[0..6]
     end
 
-    def flog_bucket
-      Centurion.db.bucket "#{project_name}_flog"
+    def flog_key data
+      sha    = data[:sha]
+      file   = digest data[:file]
+      method = digest data[:method]
+      "#{sha}:#{file}:#{method}"
     end
 
-    def meterings_bucket
-      Centurion.db.bucket "meterings"
+    def meter_key finish
+      "#{project_name}:#{finish.to_i}"
+    end
+
+    def flogs_bucket
+      Centurion.db.bucket "#{project_name}_flogs"
+    end
+
+    def meters_bucket
+      Centurion.db.bucket "#{project_name}_meters"
     end
 
     def projects_bucket

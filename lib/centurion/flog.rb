@@ -23,7 +23,7 @@ module Centurion
           :time       => commit.date.to_i,
           :author     => commit.author.to_s,
           :parent     => commit.parents.first.sha.to_s,
-          :call_list  => Hash[call_list.sort_by { |k,v| -v }.map]
+          :call_list  => call_list.sort_by { |k,v| -v }.inject({}) {|h,(k,v)| h[k]=v;h}
         })
       end
     end
