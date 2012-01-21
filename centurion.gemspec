@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake'
   s.add_development_dependency 'haml'
   s.add_development_dependency 'watchr'
+  s.add_development_dependency 'rspec'
   s.add_runtime_dependency 'flog'
   s.add_runtime_dependency 'clip'
   s.add_runtime_dependency 'rack', '1.4.0'

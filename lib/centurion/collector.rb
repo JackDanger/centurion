@@ -12,6 +12,7 @@ module Centurion
     end
 
     def meter
+      start = Time.now
       each_commit do |commit|
         puts "Collecting #{commit} in #{project_name}"
         files.each_with_index do |file, idx|
@@ -22,6 +23,17 @@ module Centurion
         end
         #updated_index commit
       end
+      update_project start, Time.now
+    end
+
+    def update_project start, finish
+      store_in projects_bucket,
+               project_name,
+               :updated_at => finish,
+               :last_duration => finish - start
+      store_in meterings_bucket,
+               "#{project_name}:#{finish.to_i}",
+               :duration => finish - start
     end
 
     def insert_flog data
@@ -30,7 +42,12 @@ module Centurion
       method = digest data[:method]
 
       key = "#{sha}:#{file}:#{method}"
-      doc = flog_bucket.get_or_new key
+
+      store_in flog_bucket, key, data
+    end
+
+    def store_in bucket, key, data
+      doc = bucket.get_or_new key
       doc.data = data
       doc.content_type = 'application/json'
       doc.store
@@ -42,6 +59,14 @@ module Centurion
 
     def flog_bucket
       Centurion.db.bucket "#{project_name}_flog"
+    end
+
+    def meterings_bucket
+      Centurion.db.bucket "meterings"
+    end
+
+    def projects_bucket
+      Centurion.db.bucket "projects"
     end
 
     def each_commit

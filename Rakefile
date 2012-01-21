@@ -20,12 +20,6 @@ rule '.html' => ['%{public,src}X.haml'] do |t|
   sh "haml #{t.prerequisites.join(' ')} > #{t.name}"
 end
 
-desc "Delete all keys from Riak"
-task :delete_all_keys do
-  bucket = ENV['bucket']
-  sh "curl -s http://127.0.0.1:8098/riak/#{bucket}?keys=stream | `which ruby` var/delete_keys.rb"
-end
-
 task :watch do
   exec %Q[bundle exec watchr -e "watch('src/.*') { %x{rake public upload} }"]
 end
@@ -47,6 +41,19 @@ task :upload do
   end
 end
 
+desc "Delete all keys from Riak"
+task :delete_all_keys do
+  bucket = ENV['bucket']
+  sh "curl -s http://127.0.0.1:8098/riak/#{bucket}?keys=stream | `which ruby` var/delete_keys.rb"
+end
+
+require 'rake'
+require 'rspec/core/rake_task'
+desc "Run RSpec suite over Ruby half of app"
+RSpec::Core::RakeTask.new :spec do |t|
+  t.pattern = FileList['spec/**/*_spec.rb']
+end
+
 task :public => Application
 task :public => Haml
-task :default => :public
+task :default => [:public, :spec]
