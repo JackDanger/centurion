@@ -25,10 +25,8 @@ SourceList = Backbone.Collection.extend
 
 Project = Backbone.Model.extend
   initialize: ->
-    console.log this.get('name')
     this.sourceList = new SourceList()
     this.sourceList.project = this
-    this.sourceList.fetch()
 
 ProjectView = Backbone.View.extend
 
@@ -39,6 +37,7 @@ ProjectView = Backbone.View.extend
   initialize: ->
     this.template = _.template $('#project-template').html()
     this.model.sourceList.bind 'add', this.render, this
+    this.model.sourceList.fetch()
 
   render: ->
     console.log JSON.stringify(this.model.sourceList.toJSON())
@@ -49,23 +48,24 @@ ProjectView = Backbone.View.extend
                   })
     this
 
-Projects = Backbone.Collection.extend
+ProjectList = Backbone.Collection.extend
 
   model: Project
   url: '/riak?buckets=true'
   parse: (response, xhr) ->
     _.map response.buckets, (bucket) -> {name: bucket}
 
-ProjectsView = Backbone.View.extend
+ProjectListView = Backbone.View.extend
   tagname: 'section'
   className: 'projects'
   template: '#projects-template'
-  collection: Projects
+  collection: ProjectList
 
   initialize: ->
     _.bindAll(this, 'render')
     this.template = _.template($(this.template).html())
     this.collection.bind('reset', this.render)
+    this.collection.fetch()
 
   render: ->
     $element = $(this.el)
@@ -82,24 +82,22 @@ Centurion = Backbone.Router.extend
   initialize: ->
 
   home: ->
-    projectsView = new ProjectsView
-      collection: projects
-    projects.fetch()
+    projectListView = new ProjectListView
+      collection: new ProjectList()
     template = _.template($("#home-template").html())
     content
       .empty()
-      .append(template({project_size: projects.length}))
+      .append(template())
     sidebar
       .empty()
-      .append(projectsView.render().el)
+      .append(projectListView.render().el)
 
   projects: ->
-    projectsView = new ProjectsView
-      collection: projects
-    projects.fetch()
+    projectListView = new ProjectListView
+      collection: new ProjectList()
     content
       .empty()
-      .append(projectsView.render().el)
+      .append(projectListView.render().el)
 
   project: (name) ->
     projectView = new ProjectView
@@ -119,7 +117,6 @@ $ ->
   window.App = new Centurion()
   window.content = $('#content')
   window.sidebar = $('#sidebar')
-  window.projects = new Projects()
 
   Backbone.history.start()
   # this.projectsView = new ProjectsView

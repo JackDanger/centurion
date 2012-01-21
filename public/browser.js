@@ -1,4 +1,4 @@
-var Centurion, Project, ProjectView, Projects, ProjectsView, Source, SourceList;
+var Centurion, Project, ProjectList, ProjectListView, ProjectView, Source, SourceList;
 
 Source = Backbone.Model.extend();
 
@@ -43,10 +43,8 @@ SourceList = Backbone.Collection.extend({
 
 Project = Backbone.Model.extend({
   initialize: function() {
-    console.log(this.get('name'));
     this.sourceList = new SourceList();
-    this.sourceList.project = this;
-    return this.sourceList.fetch();
+    return this.sourceList.project = this;
   }
 });
 
@@ -56,7 +54,8 @@ ProjectView = Backbone.View.extend({
   model: Project,
   initialize: function() {
     this.template = _.template($('#project-template').html());
-    return this.model.sourceList.bind('add', this.render, this);
+    this.model.sourceList.bind('add', this.render, this);
+    return this.model.sourceList.fetch();
   },
   render: function() {
     var $element;
@@ -70,7 +69,7 @@ ProjectView = Backbone.View.extend({
   }
 });
 
-Projects = Backbone.Collection.extend({
+ProjectList = Backbone.Collection.extend({
   model: Project,
   url: '/riak?buckets=true',
   parse: function(response, xhr) {
@@ -82,15 +81,16 @@ Projects = Backbone.Collection.extend({
   }
 });
 
-ProjectsView = Backbone.View.extend({
+ProjectListView = Backbone.View.extend({
   tagname: 'section',
   className: 'projects',
   template: '#projects-template',
-  collection: Projects,
+  collection: ProjectList,
   initialize: function() {
     _.bindAll(this, 'render');
     this.template = _.template($(this.template).html());
-    return this.collection.bind('reset', this.render);
+    this.collection.bind('reset', this.render);
+    return this.collection.fetch();
   },
   render: function() {
     var $element;
@@ -111,24 +111,20 @@ Centurion = Backbone.Router.extend({
   },
   initialize: function() {},
   home: function() {
-    var projectsView, template;
-    projectsView = new ProjectsView({
-      collection: projects
+    var projectListView, template;
+    projectListView = new ProjectListView({
+      collection: new ProjectList()
     });
-    projects.fetch();
     template = _.template($("#home-template").html());
-    content.empty().append(template({
-      project_size: projects.length
-    }));
-    return sidebar.empty().append(projectsView.render().el);
+    content.empty().append(template());
+    return sidebar.empty().append(projectListView.render().el);
   },
   projects: function() {
-    var projectsView;
-    projectsView = new ProjectsView({
-      collection: projects
+    var projectListView;
+    projectListView = new ProjectListView({
+      collection: new ProjectList()
     });
-    projects.fetch();
-    return content.empty().append(projectsView.render().el);
+    return content.empty().append(projectListView.render().el);
   },
   project: function(name) {
     var projectView;
@@ -149,6 +145,5 @@ $(function() {
   window.App = new Centurion();
   window.content = $('#content');
   window.sidebar = $('#sidebar');
-  window.projects = new Projects();
   return Backbone.history.start();
 });
