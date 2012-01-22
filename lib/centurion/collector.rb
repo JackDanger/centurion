@@ -14,12 +14,12 @@ module Centurion
     def meter
       start = Time.now
       each_commit do |commit|
-        puts "Collecting #{commit} in #{project_name}"
+        log "Collecting #{commit} in #{project_name}"
         files.each_with_index do |file, idx|
           Flog.new(file, commit).meter do |data|
             insert_flog data
           end
-          puts "processed #{idx+1}/#{files.size} - #{file.sub(/^#{project_root}\//,'')}"
+          log "processed #{idx+1}/#{files.size} - #{file.sub(/^#{project_root}\//,'')}"
         end
         #updated_index commit
       end
@@ -73,6 +73,10 @@ module Centurion
 
     def projects_bucket
       Centurion.db.bucket "projects"
+    end
+
+    def log string
+      puts string
     end
 
     def each_commit

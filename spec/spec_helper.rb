@@ -5,6 +5,7 @@ require 'fake_riak'
 RSpec.configure do |config|
   config.before do
     FakeRiak.install
+    Centurion::Collector.any_instance.stub(:log)
   end
 
   config.after do
