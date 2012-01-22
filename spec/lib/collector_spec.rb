@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Centurion::Collector do
 
   let(:project_root) { File.expand_path '../../../', __FILE__ }
-  let(:commit_range) { ['HEAD^', 'HEAD'] }
+  let(:commit_range) { ['HEAD', 'HEAD^'] }
   let(:options) {{
     :project_root => project_root,
     :commit_range => commit_range
@@ -23,15 +23,11 @@ describe Centurion::Collector do
   end
 
   describe '#meter' do
-    before  { collector.stub(:meter_key).and_return('meter-key') }
-    before  { collector.stub(:flog_key).and_return('flog-key')   }
+
     subject { collector.meter }
 
-    it 'creates new flog record' do
-      expect { subject }.to change {
-        collector.flogs_bucket.exists? 'flog-key'
-      }
-    end
+    before  { collector.stub(:meter_key).and_return('meter-key') }
+    before  { collector.stub(:flog_key).and_return('flog-key')   }
 
     it 'creates new meter record' do
       expect { subject }.to change {
@@ -44,5 +40,40 @@ describe Centurion::Collector do
         collector.projects_bucket.exists? project_name
       }
     end
+  end
+
+  describe '#meter_commit' do
+
+    let(:commit) { collector.repo.commits.first }
+    let(:files)  { Dir.glob(project_root + '/**/*.rb') }
+
+    subject { collector.meter_commit commit }
+
+    it 'measures each file' do
+      files.each do |file|
+        collector.should_receive(:meter_file).
+                  with(file.sub(project_root+'/', ''), commit).
+                  once
+      end
+      subject
+    end
+  end
+
+  describe '#meter_file' do
+
+    let(:file)   { __FILE__ }
+    let(:commit) { collector.repo.commits.first }
+
+    subject { collector.meter_file file, commit }
+
+    before  { collector.stub(:meter_key).and_return('meter-key') }
+    before  { collector.stub(:flog_key).and_return('flog-key')   }
+
+    it 'creates new flog record' do
+      expect { subject }.to change {
+        collector.flogs_bucket.exists? 'flog-key'
+      }
+    end
+
   end
 end
