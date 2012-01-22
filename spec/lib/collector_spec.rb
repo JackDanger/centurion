@@ -2,13 +2,13 @@ require 'spec_helper'
 
 describe Centurion::Collector do
 
-  let(:project_root) { File.expand_path '../../../', __FILE__ }
+  let(:project_root) { Centurion::TestRepo }
   let(:commit_range) { ['HEAD', 'HEAD^'] }
   let(:options) {{
     :project_root => project_root,
     :commit_range => commit_range
   }}
-  let(:project_name) { 'centurion' }
+  let(:project_name) { 'test_repo' }
 
   let(:collector) { Centurion::Collector.new options }
 
@@ -39,6 +39,13 @@ describe Centurion::Collector do
       expect { subject }.to change {
         collector.projects_bucket.exists? project_name
       }
+    end
+
+    context 'across multiple commits' do
+      let(:commit_range) { ['HEAD', 'HEAD^^'] }
+
+      it 'calculates files from the previous commit' do
+      end
     end
   end
 
