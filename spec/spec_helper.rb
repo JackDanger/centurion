@@ -6,7 +6,7 @@ require 'grit_commit_equality'
 module Centurion
   TestRepo = File.expand_path '../test_repo', __FILE__
   unless File.exists? TestRepo
-    %x{tar xzf #{TestRepo}.tgz -C spec/}
+    %x{tar xzf #{TestRepo}.tgz spec/}
   end
 end
 

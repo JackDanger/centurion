@@ -87,13 +87,20 @@ module Centurion
 
       def each_commit
         first, final = @commit_range
+        # You can provide 'start' as the beginning of your commit range
+        # This will process the entire project history
         if 'start' == first
           commit = @repo.commit final
           until (commit = commit.parents.first) && commit.parents.blank?
             first = commit.sha
           end
         end
-        @repo.commits_between(first, final).each do |commit|
+
+        commits = @repo.commits_between(first, final)
+        # For our purposes we _do_ want the starting commit
+        # (Git performs an initial-exclusive range lookups, we want an inclusive one)
+        commits.unshift commits.first.parents.first
+        commits.each do |commit|
           yield commit
         end
       end
