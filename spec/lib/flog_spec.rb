@@ -2,10 +2,11 @@ require 'spec_helper'
 
 describe Centurion::Flog do
 
-  let(:file)   { __FILE__ }
-  let(:repo)   { Grit::Repo.new(File.expand_path '../../../', __FILE__) }
-  let(:commit) { repo.commits.first }
-  let(:flog) { Centurion::Flog.new(file, commit) }
+  let(:file)         { __FILE__                          }
+  let(:project_root) { Centurion::TestRepo               }
+  let(:repo)         { Grit::Repo.new(project_root)      }
+  let(:commit)       { repo.commits.first                }
+  let(:flog)         { Centurion::Flog.new(file, commit) }
 
   describe '#meter' do
     it 'yields flog-specific data' do

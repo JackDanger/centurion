@@ -76,7 +76,7 @@ module Centurion
 
       def flog_key data
         sha    = data[:sha]
-        file   = digest data[:file]
+        file   = digest data[:file].sub(/^#{project_root}\//, '')
         method = digest data[:method]
         "#{sha}:#{file}:#{method}"
       end
@@ -102,7 +102,7 @@ module Centurion
         @files ||= begin
           found = Dir.glob File.join(project_root, '**/*.rb')
           warn "No Ruby source files found in #{project_root}!" if found.empty?
-          found.map {|file| file.sub(/^#{project_root}\//, '') }
+          found
         end
       end
 

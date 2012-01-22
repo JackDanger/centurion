@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Centurion::Collector do
 
   let(:project_root) { Centurion::TestRepo }
-  let(:commit_range) { ['HEAD', 'HEAD^'] }
+  let(:commit_range) { ['HEAD^', 'HEAD'] }
   let(:options) {{
     :project_root => project_root,
     :commit_range => commit_range
@@ -42,9 +42,10 @@ describe Centurion::Collector do
     end
 
     context 'across multiple commits' do
-      let(:commit_range) { ['HEAD', 'HEAD^^'] }
+      let(:commit_range) { ['HEAD^^', 'HEAD'] }
 
       it 'calculates files from the previous commit' do
+        # subject.should == 3
       end
     end
   end
@@ -59,7 +60,7 @@ describe Centurion::Collector do
     it 'measures each file' do
       files.each do |file|
         collector.should_receive(:meter_file).
-                  with(file.sub(project_root+'/', ''), commit).
+                  with(file, commit).
                   once
       end
       subject
