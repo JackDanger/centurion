@@ -27,13 +27,17 @@ module Centurion
       files = files_for commit
       files.each_with_index do |file, idx|
         meter_file file, commit
-        log "processed #{idx+1}/#{files.size} - #{file.sub(/^#{project_root}\//,'')}"
+        log "processed #{idx+1}/#{files.size} - #{file}"
       end
       #updated_index commit
     end
 
-    def meter_file file, commit
-      Flog.new(file, commit).meter do |data|
+    def meter_file filename, commit
+      Flog.new(
+        file_contents_for(commit, filename),
+        filename,
+        commit
+      ).meter do |data|
         insert_flog data
       end
     end
@@ -87,8 +91,19 @@ module Centurion
         "#{project_name}:#{finish.to_i}"
       end
 
-      def each_commit
+      def files_for commit
+        find_tree = "git ls-tree -r #{commit.tree.id} | awk '{print $4}' | egrep \\.rb$"
+        file_list = `cd #{project_root} && #{find_tree}`
+        files = file_list.split("\n")
+        warn "No Ruby source files found in #{project_root}!" if files.empty?
+        files
+      end
 
+      def file_contents_for commit, filename
+        `cd #{project_root} && git show #{commit.sha}:#{filename}`
+      end
+
+      def each_commit
         first, final = commit_range
         # You can provide 'start' as the beginning of your commit range
         # This will process the entire project history
@@ -104,12 +119,6 @@ module Centurion
         commits.each do |commit|
           yield commit
         end
-      end
-
-      def files_for commit
-        found = Dir.glob File.join(project_root, '**/*.rb')
-        warn "No Ruby source files found in #{project_root}!" if found.empty?
-        found
       end
 
       def log string

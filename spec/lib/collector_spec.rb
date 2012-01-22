@@ -14,12 +14,12 @@ describe Centurion::Collector do
   # Every commit and file from the test_repo git history
   let(:commits_and_files) {
     {
-     '969cfaa2caad3520bc83a21d05cb295b1191fe6f' => ['rowan.rb'],
-     'a5024f790f22f02ddeff14e374b5ed11cca57946' => ['rowan.rb', 'cleese.rb'],
-     '0313b90b681947d424c61b7e9a75bf5a31aa6f2d' => ['cleese.rb']
+     '7a0f9310adc672d2f16ea1b800780c49130ccea6' => ['rowan.rb', 'cleese.rb'],
+     '8ad3ea51e4993f687a38332c01e52d1072f5c47b' => ['cleese.rb'],
+     '702089b0b487e59d85e3a39d56eb0fdba85dbf2c' => ['cleese.rb', 'lithgow.rb']
      }.inject({}) {|hash, (sha, files)|
        commit = collector.repo.commits.detect {|c| c.sha == sha }
-       files = files.map {|f| "#{Centurion::TestRepo}/#{f}" }
+       # files = files.map {|f| "#{Centurion::TestRepo}/#{f}" }
        hash[commit] = files
        hash
      }
@@ -56,7 +56,7 @@ describe Centurion::Collector do
     end
 
     context 'across multiple commits' do
-      let(:commit_range) { ['HEAD^^', 'HEAD'] }
+      let(:commit_range) { ['HEAD^^^', 'HEAD'] }
 
       it 'calculates each commit' do
         commits_and_files.each do |commit, files|
@@ -83,7 +83,10 @@ describe Centurion::Collector do
   describe '#meter_commit' do
 
     let(:commit) { collector.repo.commits.first }
-    let(:files)  { Dir.glob(project_root + '/**/*.rb') }
+    let(:files)  {
+      Dir.glob(project_root + '/**/*.rb').
+          map {|f| f.sub(/^#{project_root}\//, '') }
+    }
 
     subject { collector.meter_commit commit }
 
@@ -99,7 +102,7 @@ describe Centurion::Collector do
 
   describe '#meter_file' do
 
-    let(:file)   { __FILE__ }
+    let(:file)   { 'cleese.rb' }
     let(:commit) { collector.repo.commits.first }
 
     subject { collector.meter_file file, commit }

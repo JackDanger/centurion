@@ -1,20 +1,46 @@
 require 'flog'
+
+class ::Flog < SexpProcessor
+  def flog_source(ruby, file)
+    warn "** flogging #{file}" if option[:verbose]
+
+    ast = @parser.process(ruby, file)
+    return unless ast
+    mass[file] = ast.mass
+    process ast
+  rescue RegexpError, SyntaxError, Racc::ParseError => e
+    if e.inspect =~ /<%|%>/ or ruby =~ /<%|%>/ then
+      warn "#{e.inspect} at #{e.backtrace.first(5).join(', ')}"
+      warn "\n...stupid lemmings and their bad erb templates... skipping"
+    else
+      warn "ERROR: parsing ruby file #{file}"
+      unless option[:continue] then
+        warn "ERROR! Aborting. You may want to run with --continue."
+        raise e
+      end
+      warn "#{e.class}: #{e.message.strip} at:"
+      warn "  #{e.backtrace.first(5).join("\n  ")}"
+    end
+  end
+end
+
 module Centurion
   class Flog
 
-    attr_accessor :file, :commit
+    attr_accessor :source, :filename, :commit
 
-    def initialize file, commit
-      @file   = file
-      @commit = commit
+    def initialize source, filename, commit
+      @source   = source
+      @filename = filename
+      @commit   = commit
     end
 
     def meter
       whip = ::Flog.new
-      whip.flog file
+      whip.flog_source source, __FILE__
       whip.each_by_score do |class_method, score, call_list|
         yield({
-          :file       => file,
+          :file       => filename,
           :total      => whip.total,
           :average    => whip.average,
           :method     => class_method,
