@@ -2,7 +2,8 @@ require 'grit'
 module Centurion
   class Collector
 
-    attr_reader :project_root, :project_name, :repo
+    attr_reader :project_root, :project_name,
+                :repo, :commit_range
 
     def initialize options
       @project_root = options[:project_root]
@@ -23,6 +24,7 @@ module Centurion
 
     def meter_commit commit
       log "Collecting #{commit} in #{project_name}"
+      files = files_for commit
       files.each_with_index do |file, idx|
         meter_file file, commit
         log "processed #{idx+1}/#{files.size} - #{file.sub(/^#{project_root}\//,'')}"
@@ -86,31 +88,28 @@ module Centurion
       end
 
       def each_commit
-        first, final = @commit_range
+
+        first, final = commit_range
         # You can provide 'start' as the beginning of your commit range
         # This will process the entire project history
         if 'start' == first
-          commit = @repo.commit final
+          commit = repo.commit final
           until (commit = commit.parents.first) && commit.parents.blank?
             first = commit.sha
           end
         end
 
-        commits = @repo.commits_between(first, final)
-        # For our purposes we _do_ want the starting commit
-        # (Git performs an initial-exclusive range lookups, we want an inclusive one)
-        commits.unshift commits.first.parents.first
+        commits = Grit::Commit.find_all repo, "#{first}..#{final}"
+
         commits.each do |commit|
           yield commit
         end
       end
 
-      def files
-        @files ||= begin
-          found = Dir.glob File.join(project_root, '**/*.rb')
-          warn "No Ruby source files found in #{project_root}!" if found.empty?
-          found
-        end
+      def files_for commit
+        found = Dir.glob File.join(project_root, '**/*.rb')
+        warn "No Ruby source files found in #{project_root}!" if found.empty?
+        found
       end
 
       def log string

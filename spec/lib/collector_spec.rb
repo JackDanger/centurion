@@ -11,6 +11,7 @@ describe Centurion::Collector do
   let(:project_name) { 'test_repo' }
 
   let(:collector) { Centurion::Collector.new options }
+  # Every commit and file from the test_repo git history
   let(:commits_and_files) {
     {
      '969cfaa2caad3520bc83a21d05cb295b1191fe6f' => ['rowan.rb'],
