@@ -23,9 +23,10 @@
 ## Commits
 
   * sha
-  * filenames
   * author
   * comment
+  * proccessed
+  * processedAt
   * date
   * parent
   * score

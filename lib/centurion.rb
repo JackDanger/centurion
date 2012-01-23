@@ -7,4 +7,5 @@ module Centurion
   end
 end
 require 'centurion/flog'
+require 'centurion/project'
 require 'centurion/collector'
