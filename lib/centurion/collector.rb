@@ -6,8 +6,7 @@ module Centurion
                 :repo, :commit_range
 
     def initialize options
-      @project = Centurion::Project.new options[:project]
-      @project.name = File.basename project.name
+      @project = options[:project]
       @repo = project.repo
     end
 

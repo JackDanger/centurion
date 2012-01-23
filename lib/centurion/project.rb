@@ -1,36 +1,39 @@
 module Centurion
   class Project
 
+    include BucketList
+
     attr_reader :root, :name, :repo
 
     def initialize root
       @root = root
       @name = File.basename root
       @repo  = Grit::Repo.new root
+      @collector = Collector.new :project => self
     end
 
-    %w{authors commits files methods}.each do |bucket|
-      define_method "#{bucket}_bucket" do
-        Centurion.db.bucket "#{name}_#{bucket}"
+    def run!
+      update_commit_list
+      commits do |commit|
+        next if commits_bucket.exists? commit.sha
+        collector.meter commit
       end
     end
 
     def update_commit_list
-      commits do |commit_set|
-        commit_set.each do |commit|
-          next if commits_bucket.exists? commit.sha
-          doc = commits_bucket.new commit.sha
-          parent = commit.parents.first
-          doc.data = {
-            :processed    => false,
-            :sha          => commit.sha,
-            :date         => commit.date.to_i,
-            :author       => commit.author.to_s,
-            :authorDigest => digest(commit.author.to_s),
-            :parent       => parent && parent.sha
-          }
-          doc.store
-        end
+      commits do |commit|
+        next if commits_bucket.exists? commit.sha
+        doc = commits_bucket.new commit.sha
+        parent = commit.parents.first
+        doc.data = {
+          :processed    => false,
+          :sha          => commit.sha,
+          :date         => commit.date.to_i,
+          :author       => commit.author.to_s,
+          :authorDigest => digest(commit.author.to_s),
+          :parent       => parent && parent.sha
+        }
+        doc.store
       end
     end
 
@@ -40,7 +43,9 @@ module Centurion
       begin
         batch = repo.commits 'HEAD', batch_size, offset
         if block_given? && !batch.empty?
-          yield batch
+          batch.each do |commit|
+            yield commit
+          end
         else
           found += batch
         end
@@ -58,6 +63,10 @@ module Centurion
 
     def digest string
       Digest::SHA1.hexdigest(string)[0..6]
+    end
+
+    def run_key
+      "#{project_name}:#{Time.now.to_i}"
     end
 
   end

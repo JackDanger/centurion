@@ -2,8 +2,10 @@ require 'spec_helper'
 
 describe Centurion::Project do
 
-  let(:project_root) { Centurion::TestRepo                 }
-  let(:project)      { Centurion::Project.new project_root }
+  let(:project_root)      { Centurion::TestRepo                 }
+  let(:project)           { Centurion::Project.new project_root }
+  let(:commits_and_files) { Centurion::TestRepoCommits          }
+
 
   describe '#root' do
     subject { project.root }
@@ -25,24 +27,65 @@ describe Centurion::Project do
     context 'one batch at a time' do
       let(:batch_size) { 2 }
       it 'yields each batch' do
-        batch_count = project.commits.size / batch_size
         catcher = Object.new
-        catcher.should_receive(:batch_received).exactly(batch_count).times
-        project.commits(batch_size) do |batch|
+        catcher.should_receive(:batch_received).exactly(project.commits.size).times
+        project.commits(batch_size) do |commit|
           catcher.batch_received
-          batch.size.should == batch_size
         end
       end
     end
   end
 
   describe '#update_commit_list' do
-    subject { project.update_commit_list }
+  end
+
+  describe '#run!' do
+
+    let(:run_time) { Time.now }
+    before  {
+      project.stub(:run_time).and_return(run_time)
+      project.stub(:run_key).and_return('run-key')
+    }
+
+    subject { project.run! }
+
     it {
       expect { subject }.to change {
         project.commits_bucket.keys(:reload => true).size
       }.from(0).to(project.commits.size)
     }
+
+    it 'sets processedAt' do
+      subject
+      project.commits {|commit|
+        project.commits_bucket.
+                get(commit.sha).
+                data[:processedAt].should == run_time.to_i
+      }
+    end
+
+    it 'creates new run record' do
+      expect { subject }.to change {
+        project.runs_bucket.exists? 'run-key'
+      }
+    end
+
+    it 'updates project record' do
+      expect { subject }.to change {
+        project.projects_bucket.exists? project.name
+      }
+    end
+
+    it 'updates a project that has been run before'
+
+    it 'calculates each commit' do
+      commits_and_files.each do |commit, files|
+        project.should_receive(:meter_commit).
+                  with(commit).
+                  once
+      end
+      subject
+    end
   end
 
   describe '#commits_bucket' do
@@ -63,5 +106,10 @@ describe Centurion::Project do
   describe '#methods_bucket' do
     subject { project.methods_bucket.name }
     it { should == "test_repo_methods" }
+  end
+
+  describe '#runs_bucket' do
+    subject { project.runs_bucket.name }
+    it { should == "runs" }
   end
 end
