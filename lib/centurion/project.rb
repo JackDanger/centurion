@@ -39,18 +39,43 @@ module Centurion
       doc.store
     end
 
-    def update_file commit, filename, data
+    def update_file commit, filename, flog
       previous_score = previous_score_for commit, filename
       key = file_key commit, filename
       doc = files_bucket.new key
       doc.data = {
         :sha          => commit.sha,
         :date         => commit.date.to_i,
-        :author       => commit.author.to_s,
+        :comment      => commit.message,
+        :processedAt  => Time.now.to_i,
+        :author       => [commit.author.name,
+                          commit.author.email],
         :authorDigest => digest(commit.author.to_s),
         :parent       => parent_sha(commit),
-        :score        => data[:total],
-        :scoreDelta   => data[:total] - previous_score
+        :score        => flog[:total],
+        :scoreDelta   => flog[:total] - previous_score
+        :scoreAverage => flog[:average],
+      }
+      doc.store
+    end
+
+    def update_method commit, filename, flog
+      method_name = flog[:method]
+      previous_score = 0#previous_score_for commit, file, method
+      key = method_key commit, filename, method_name
+      doc = files_bucket.new key
+      doc.data = {
+        :sha          => commit.sha,
+        :date         => commit.date.to_i,
+        :comment      => commit.message,
+        :processedAt  => Time.now.to_i,
+        :author       => [commit.author.name,
+                          commit.author.email],
+        :authorDigest => digest(commit.author.to_s),
+        :parent       => parent_sha(commit),
+        :score        => flog[:total],
+        :average      => flog[:average],
+        :scoreDelta   => flog[:total] - previous_score
       }
       doc.store
     end

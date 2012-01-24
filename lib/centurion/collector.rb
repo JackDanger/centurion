@@ -20,13 +20,16 @@ module Centurion
     end
 
     def meter_file filename, commit
+      file_flog = {}
       Centurion::Flog.new(
         file_contents_for(commit, filename),
         filename,
         commit
-      ).meter do |data|
-        project.update_file commit, filename, data
+      ).meter do |method_flog|
+        file_flog = method_flog.slice :average, :total
+        project.update_method commit, filename, method_flog
       end
+      project.update_file commit, filename, file_flog
     end
 
     protected

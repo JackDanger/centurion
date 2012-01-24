@@ -17,13 +17,12 @@ describe Centurion::Collector do
     it { should == project_root }
   end
 
-  describe '#project_name' do
-    subject { collector.project_name }
-    it { should == project_name }
+  describe '#project' do
+    subject { collector.project }
+    it { should == project }
   end
 
-
-  describe '#meter_commit' do
+  describe '#meter' do
 
     let(:commit) { collector.repo.commits.first }
     let(:files)  {
@@ -33,15 +32,13 @@ describe Centurion::Collector do
 
     Centurion::TestRepoCommits.each do |commit, files|
       context "for #{commit} => #{files.inspect}" do
-        subject { collector.meter_commit commit }
+        subject { collector.meter commit }
 
         it 'calculates all (and only) files from the given commit' do
-          commits_and_files.each do |commit, files|
-            files.each do |file|
-              project.should_receive(:meter_file).
-                        with(file, commit).
-                        once
-            end
+          files.each do |file|
+            collector.should_receive(:meter_file).
+                      with(file, commit).
+                      once
           end
           subject
         end
@@ -76,7 +73,8 @@ describe Centurion::Collector do
 
       context 'author' do
         let(:attribute) { :author }
-        it { should == commit.author }
+        it { should == [commit.author.name,
+                        commit.author.email] }
       end
 
       context 'comment' do
@@ -86,7 +84,7 @@ describe Centurion::Collector do
 
       context 'processedAt' do
         let(:attribute) { :processedAt }
-        it { should == frozen_moment }
+        it { should == frozen_moment.to_i }
       end
 
       context 'date' do
@@ -107,6 +105,17 @@ describe Centurion::Collector do
                           and_yield({:total => 5.5})
         }
         it { should == 5.5 }
+      end
+
+      context 'scoreAverage' do
+        let(:attribute) { :scoreAverage }
+        before {
+          Centurion::Flog.any_instance.
+                          stub(:meter).
+                          and_yield({:total => 5.5,
+                                     :average => 3.3})
+        }
+        it { should == 3.3 }
       end
 
       context 'scoreDelta' do
