@@ -6,10 +6,14 @@ module Centurion
     @db ||= Riak::Client.new
   end
 
-  autoload :BucketList, 'centurion/bucket_list'
-  autoload :Project,    'centurion/project'
-  autoload :Collector,  'centurion/collector'
-  autoload :Flog,       'centurion/flog'
+  autoload :Persistence, 'centurion/persistence'
+  autoload :Project,     'centurion/project'
+  autoload :Collector,   'centurion/collector'
+  autoload :Flog,        'centurion/flog'
+
+  Dir.glob(File.expand_path '../centurion/**/*.rb', __FILE__).each do |rb|
+    require rb
+  end
 
 end
 

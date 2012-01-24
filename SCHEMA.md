@@ -25,7 +25,6 @@
   * sha
   * author
   * comment
-  * proccessed
   * processedAt
   * date
   * parent

@@ -1,7 +1,7 @@
 module Centurion
   class Project
 
-    include BucketList
+    include Persistence
 
     attr_reader :root, :name, :repo
 
@@ -13,28 +13,46 @@ module Centurion
     end
 
     def run!
-      update_commit_list
+      count = 0
+      start = Time.now
       commits do |commit|
         next if commits_bucket.exists? commit.sha
         collector.meter commit
+        last_commit = commit
+        count += 1
       end
+      update_project count, start, last_commit
     end
 
-    def update_commit_list
-      commits do |commit|
-        next if commits_bucket.exists? commit.sha
-        doc = commits_bucket.new commit.sha
-        parent = commit.parents.first
-        doc.data = {
-          :processed    => false,
-          :sha          => commit.sha,
-          :date         => commit.date.to_i,
-          :author       => commit.author.to_s,
-          :authorDigest => digest(commit.author.to_s),
-          :parent       => parent && parent.sha
-        }
-        doc.store
-      end
+    def update_project count, start, last_commit
+      store_in projects_bucket,
+               project.name,
+               :last_sha      => last_commit.sha,
+               :updated_at    => Time.now.to_i,
+               :last_duration => Time.now - start
+    end
+
+    def update_commit commit, data
+      key = commit_key commit
+      doc = commits_bucket.new key
+      doc.data = data
+      doc.store
+    end
+
+    def update_file commit, filename, data
+      previous_score = previous_score_for commit, filename
+      key = file_key commit, filename
+      doc = files_bucket.new key
+      doc.data = {
+        :sha          => commit.sha,
+        :date         => commit.date.to_i,
+        :author       => commit.author.to_s,
+        :authorDigest => digest(commit.author.to_s),
+        :parent       => parent_sha(commit),
+        :score        => data[:total],
+        :scoreDelta   => data[:total] - previous_score
+      }
+      doc.store
     end
 
     def commits(batch_size = 200)
@@ -54,20 +72,15 @@ module Centurion
       found unless block_given?
     end
 
-    def store_in bucket, key, data
-      doc = bucket.get_or_new key
-      doc.data = data
-      doc.content_type = 'application/json'
-      doc.store
+    def previous_score_for commit, filename
+      # TODO
+      0
     end
 
-    def digest string
-      Digest::SHA1.hexdigest(string)[0..6]
+    def parent_sha commit
+      if parent = commit.parents.first
+        parent.sha
+      end
     end
-
-    def run_key
-      "#{project_name}:#{Time.now.to_i}"
-    end
-
   end
 end
