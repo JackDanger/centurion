@@ -3,7 +3,9 @@ module Centurion
 
     include Persistence
 
-    attr_reader :root, :name, :repo
+    attr_reader :root, :name, :repo,
+                :run_at, :duration,
+                :beginning, :ending, :count
 
     def initialize root
       @root = root
@@ -12,73 +14,75 @@ module Centurion
     end
 
     def run!
-      count = 0
-      start = Time.now
-      last_commit = nil
+      @run_at = Time.now.to_i
+      @beginning = @ending = nil
+      @count = 0
+
       commits do |commit|
         next if commits_bucket.exists? commit.sha
-        Commission.run! :project => self,
-                        :commit => commit
-        last_commit = commit
-        count += 1
+
+        Commission.run! :project => self, :commit => commit
+        @count += 1
+        @ending  ||= commit
+        @beginning = commit
       end
-      update_project count, start, last_commit if last_commit
+
+      @duration = Time.now.to_i - run_at
+      update_project if count > 0
     end
 
-    def update_project count, start, last_commit
+    def update_project
       store_in projects_bucket,
                name,
-               :last_sha      => last_commit.sha,
-               :updated_at    => Time.now.to_i,
-               :last_duration => Time.now - start
+               :last_sha      => ending.sha,
+               :updated_at    => run_at,
+               :last_duration => duration
+      store_in runs_bucket,
+               run_key,
+               :commits       => count,
+               :start         => beginning.sha,
+               :end           => ending.sha,
+               :created_at    => run_at
     end
 
-    def update_commit commit, data
-      key = commit_key commit
-      doc = commits_bucket.new key
-      doc.data = data
-      doc.store
+    def update_commit commit, flog
+      previous_score = previous_score_for commit
+      store_in commits_bucket,
+               commit_key(commit),
+               :sha          => commit.sha,
+               :date         => commit.date.to_i,
+               :comment      => commit.message,
+               :processedAt  => run_at,
+               :author       => [commit.author.name,
+                                 commit.author.email],
+               :authorDigest => digest(commit.author.to_s),
+               :parent       => parent_sha(commit),
+               :flog         => flog[:total],
+               :flogAverage  => flog[:average],
+               :flogDelta    => flog[:total].to_f - previous_score
     end
 
     def update_file commit, filename, flog
       previous_score = previous_score_for commit, filename
-      key = file_key commit, filename
-      doc = files_bucket.new key
-      doc.data = {
-        :sha          => commit.sha,
-        :date         => commit.date.to_i,
-        :comment      => commit.message,
-        :processedAt  => Time.now.to_i,
-        :author       => [commit.author.name,
-                          commit.author.email],
-        :authorDigest => digest(commit.author.to_s),
-        :parent       => parent_sha(commit),
-        :score        => flog[:total],
-        :scoreDelta   => flog[:total].to_f - previous_score,
-        :scoreAverage => flog[:average],
-      }
-      doc.store
+      store_in files_bucket,
+               file_key(commit, filename),
+               :sha          => commit.sha,
+               :processedAt  => run_at,
+               :flog         => flog[:total],
+               :flogAverage  => flog[:average],
+               :flogDelta    => flog[:total].to_f - previous_score
     end
 
     def update_method commit, filename, flog
       method_name = flog[:method]
       previous_score = 0#previous_score_for commit, file, method
-      key = method_key commit, filename, method_name
-      doc = files_bucket.new key
-      doc.data = {
-        :sha          => commit.sha,
-        :date         => commit.date.to_i,
-        :comment      => commit.message,
-        :processedAt  => Time.now.to_i,
-        :author       => [commit.author.name,
-                          commit.author.email],
-        :authorDigest => digest(commit.author.to_s),
-        :parent       => parent_sha(commit),
-        :score        => flog[:total],
-        :average      => flog[:average],
-        :scoreDelta   => flog[:total].to_f - previous_score
-      }
-      doc.store
+      store_in methods_bucket,
+               method_key(commit, filename, method_name),
+               :sha          => commit.sha,
+               :processedAt  => run_at,
+               :flog         => flog[:total],
+               :flogAverage  => flog[:average],
+               :flogDelta    => flog[:total].to_f - previous_score
     end
 
     def commits(batch_size = 200)
@@ -98,7 +102,7 @@ module Centurion
       found unless block_given?
     end
 
-    def previous_score_for commit, filename
+    def previous_score_for commit, filename = nil
       # TODO
       0
     end

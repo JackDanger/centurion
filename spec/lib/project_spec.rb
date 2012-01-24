@@ -6,6 +6,20 @@ describe Centurion::Project do
   let(:project)           { Centurion::Project.new project_root }
   let(:commits_and_files) { Centurion::TestRepoCommits          }
 
+  before { project.stub(:run_at).and_return Time.now.to_i }
+
+  def project_doc
+    key = project.project_key project
+    project.projects_bucket.get key
+  end
+
+  def for_each_commit
+    project.commits.map do |commit|
+      key = project.commit_key commit
+      bucket = project.commits_bucket
+      yield bucket, key
+    end
+  end
 
   describe '#root' do
     subject { project.root }
@@ -39,9 +53,7 @@ describe Centurion::Project do
 
   describe '#run!' do
 
-    let(:run_time) { Time.now }
-    before  {
-      project.stub(:run_time).and_return(run_time)
+    before {
       project.stub(:run_key).and_return('run-key')
     }
 
@@ -49,16 +61,17 @@ describe Centurion::Project do
 
     it {
       expect { subject }.to change {
-        project.commits_bucket.keys(:reload => true).size
-      }.from(0).to(project.commits.size)
+        for_each_commit {|bucket, key| bucket.exists? key }
+      }.from([false]*4).
+        to(  [true ]*4)
     }
 
     it 'sets processedAt' do
       subject
-      project.commits {|commit|
-        project.commits_bucket.
-                get(commit.sha).
-                data[:processedAt].should == run_time.to_i
+      for_each_commit {|bucket, key|
+        bucket.
+          get(key).
+          data['processedAt'].should == Time.now.to_i
       }
     end
 
@@ -74,12 +87,18 @@ describe Centurion::Project do
       }
     end
 
-    it 'updates a project that has been run before'
-
-    it 'calculates each commit' do
-      expect { subject }.to change {
-        project.commits_bucket.keys.size
-      }.from(0).to(commits_and_files.size)
+    it 'updates a project that has been run before' do
+      commit = project.commits.first
+      project.update_commit commit, {}
+      Centurion::Commission.
+                  should_not_receive(:run!).
+                  with(:project => project,
+                       :commit  => commit)
+      Centurion::Commission.
+                  should_receive(:run!).
+                  with(:project => project,
+                       :commit  => project.commits.last)
+      subject
     end
   end
 

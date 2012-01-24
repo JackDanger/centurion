@@ -3,13 +3,15 @@ module Centurion
   class Commission
 
     attr_reader :project, :repo,
-                :commit,  :sha
+                :commit,  :sha,
+                :totals,  :averages
 
     def initialize options
       @project = options[:project]
       @repo    = project.repo
       @commit  = options[:commit]
       @sha     = commit.sha
+      @totals, @averages = Array.new, Array.new
     end
 
     def run!
@@ -18,6 +20,8 @@ module Centurion
         meter_file file
         log "processed #{idx+1}/#{files.size} - #{file}"
       end
+      project.update_commit commit, :scores   => totals.sum,
+                                    :averages => averages.sum/averages.size
     end
 
     def self.run! options
@@ -33,6 +37,8 @@ module Centurion
         project.update_method commit, filename, method_flog
       end
       project.update_file commit, filename, file_flog
+      totals   << file_flog[:total].to_f
+      averages << file_flog[:average].to_f
     end
 
     protected

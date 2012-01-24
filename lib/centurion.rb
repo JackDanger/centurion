@@ -15,5 +15,13 @@ module Centurion
     require rb
   end
 
+  class Array < ::Array
+    def sum
+      inject 0 do |total, part|
+        total += part
+        total
+      end
+    end
+  end
 end
 
