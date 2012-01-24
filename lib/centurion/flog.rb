@@ -2,12 +2,11 @@ require 'flog'
 
 module Centurion
   class Flog < ::Flog
-    attr_accessor :source, :filename, :commit
+    attr_accessor :source, :filename
 
-    def initialize source, filename, commit
+    def initialize source, filename
       @source   = source
       @filename = filename
-      @commit   = commit
       super()
     end
 
