@@ -1,44 +1,45 @@
 require 'spec_helper'
 
-describe Centurion::Collector do
+describe Centurion::Commission do
 
   let(:project_root)      { Centurion::TestRepo                 }
   let(:project)           { Centurion::Project.new project_root }
-  let(:commit_range)      { ['HEAD^', 'HEAD']                   }
+  let(:commit)            { project.repo.commits.first          }
   let(:commits_and_files) { Centurion::TestRepoCommits          }
   let(:project_name)      { 'test_repo'                         }
   let(:frozen_moment)     { Time.now                            }
 
-  let(:collector) { Centurion::Collector.new :project => project }
-
+  let(:commission) {
+    Centurion::Commission.new :project => project,
+                              :commit  => commit
+  }
 
   describe '#repo' do
-    subject { collector.repo.working_dir }
+    subject { commission.repo.working_dir }
     it { should == project_root }
   end
 
   describe '#project' do
-    subject { collector.project }
+    subject { commission.project }
     it { should == project }
   end
 
-  describe '#meter' do
+  describe '#commit' do
+    subject { commission.commit }
+    it { should == commit }
+  end
 
-    let(:commit) { collector.repo.commits.first }
-    let(:files)  {
-      Dir.glob(project_root + '/**/*.rb').
-          map {|f| f.sub(/^#{project_root}\//, '') }
-    }
-
-    Centurion::TestRepoCommits.each do |commit, files|
-      context "for #{commit} => #{files.inspect}" do
-        subject { collector.meter commit }
+  describe '#run!' do
+    Centurion::TestRepoCommits.each do |test_commit, files|
+      context "for #{test_commit} => #{files.inspect}" do
+        let(:commit) { test_commit }
+        subject { commission.run! }
 
         it 'calculates all (and only) files from the given commit' do
           files.each do |file|
-            collector.should_receive(:meter_file).
-                      with(file, commit).
-                      once
+            commission.should_receive(:meter_file).
+                       with(file).
+                       once
           end
           subject
         end
@@ -48,11 +49,16 @@ describe Centurion::Collector do
 
   describe '#meter_file' do
 
-    let(:file)     { 'cleese.rb'                   }
-    let(:commit)   { collector.repo.commits.first  }
-    let(:file_key) { project.file_key commit, file }
+    let(:commit)   { commits_and_files.keys.first      }
+    let(:file)     { commits_and_files.values.first[0] }
+    let(:file_key) { project.file_key commit, file     }
+    let(:flog_scores) {{
+      :total   => 5.5,
+      :average => 2.3,
+      :method  => 'File#open'
+    }}
 
-    subject { collector.meter_file file, commit }
+    subject { commission.meter_file file }
 
     it 'creates new file record' do
       expect { subject }.to change {
@@ -62,7 +68,7 @@ describe Centurion::Collector do
 
     context 'data[]' do
       subject {
-        collector.meter_file file, commit
+        commission.meter_file file
         project.files_bucket.get(file_key).data[attribute.to_s]
       }
 
@@ -102,7 +108,7 @@ describe Centurion::Collector do
         before {
           Centurion::Flog.any_instance.
                           stub(:meter).
-                          and_yield({:total => 5.5})
+                          and_yield(flog_scores)
         }
         it { should == 5.5 }
       end
@@ -112,17 +118,20 @@ describe Centurion::Collector do
         before {
           Centurion::Flog.any_instance.
                           stub(:meter).
-                          and_yield({:total => 5.5,
-                                     :average => 3.3})
+                          and_yield(flog_scores)
         }
-        it { should == 3.3 }
+        it { should == 2.3 }
       end
 
       context 'scoreDelta' do
         let(:attribute) { :scoreDelta }
         before {
-          Flog.any_instance.stub(:meter).and_yield({:score => 5.5})
-          parent = project.commits_bucket.get_or_new(commit.parents.first.sha)
+          Centurion::Flog.any_instance.
+                          stub(:meter).
+                          and_yield(flog_scores)
+          parent = project.
+                    commits_bucket.
+                    get_or_new(commit.parents.first.sha)
           parent.data = {:score => 15}
           parent.store
         }

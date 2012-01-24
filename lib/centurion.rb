@@ -8,7 +8,7 @@ module Centurion
 
   autoload :Persistence, 'centurion/persistence'
   autoload :Project,     'centurion/project'
-  autoload :Collector,   'centurion/collector'
+  autoload :Commission,  'centurion/commission'
   autoload :Flog,        'centurion/flog'
 
   Dir.glob(File.expand_path '../centurion/**/*.rb', __FILE__).each do |rb|

@@ -28,15 +28,13 @@ describe Centurion::Project do
       let(:batch_size) { 2 }
       it 'yields each batch' do
         catcher = Object.new
-        catcher.should_receive(:batch_received).exactly(project.commits.size).times
+        catcher.should_receive(:batch_received).
+                exactly(project.commits.size).times
         project.commits(batch_size) do |commit|
           catcher.batch_received
         end
       end
     end
-  end
-
-  describe '#update_commit_list' do
   end
 
   describe '#run!' do
@@ -79,12 +77,9 @@ describe Centurion::Project do
     it 'updates a project that has been run before'
 
     it 'calculates each commit' do
-      commits_and_files.each do |commit, files|
-        project.should_receive(:meter_commit).
-                  with(commit).
-                  once
-      end
-      subject
+      expect { subject }.to change {
+        project.commits_bucket.keys.size
+      }.from(0).to(commits_and_files.size)
     end
   end
 

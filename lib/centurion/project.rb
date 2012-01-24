@@ -9,24 +9,25 @@ module Centurion
       @root = root
       @name = File.basename root
       @repo  = Grit::Repo.new root
-      @collector = Collector.new :project => self
     end
 
     def run!
       count = 0
       start = Time.now
+      last_commit = nil
       commits do |commit|
         next if commits_bucket.exists? commit.sha
-        collector.meter commit
+        Commission.run! :project => self,
+                        :commit => commit
         last_commit = commit
         count += 1
       end
-      update_project count, start, last_commit
+      update_project count, start, last_commit if last_commit
     end
 
     def update_project count, start, last_commit
       store_in projects_bucket,
-               project.name,
+               name,
                :last_sha      => last_commit.sha,
                :updated_at    => Time.now.to_i,
                :last_duration => Time.now - start
@@ -53,7 +54,7 @@ module Centurion
         :authorDigest => digest(commit.author.to_s),
         :parent       => parent_sha(commit),
         :score        => flog[:total],
-        :scoreDelta   => flog[:total] - previous_score
+        :scoreDelta   => flog[:total].to_f - previous_score,
         :scoreAverage => flog[:average],
       }
       doc.store
@@ -75,7 +76,7 @@ module Centurion
         :parent       => parent_sha(commit),
         :score        => flog[:total],
         :average      => flog[:average],
-        :scoreDelta   => flog[:total] - previous_score
+        :scoreDelta   => flog[:total].to_f - previous_score
       }
       doc.store
     end
