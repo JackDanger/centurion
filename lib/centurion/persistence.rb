@@ -2,7 +2,7 @@ module Centurion
   class Project
     module Persistence
 
-      def store_in bucket, key, data
+      def store bucket, key, data
         doc = bucket.get_or_new key
         doc.data = data
         doc.content_type = 'application/json'
@@ -46,13 +46,13 @@ module Centurion
       end
 
       def file_key commit, file
-        sha = commit.sha
+        sha  = commit.is_a?(String) ? commit : commit.sha
         file = digest file
         "#{sha}:#{file}"
       end
 
       def method_key commit, file, method
-        sha    = commit.sha
+        sha    = commit.is_a?(String) ? commit : commit.sha
         file   = digest file
         method = digest method
         "#{sha}:#{file}:#{method}"

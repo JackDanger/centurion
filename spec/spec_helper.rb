@@ -25,7 +25,6 @@ end
 RSpec.configure do |config|
   config.before :each do
     FakeRiak.install
-    Centurion::Commission.any_instance.stub(:log)
   end
 
   config.after :each do

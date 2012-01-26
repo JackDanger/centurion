@@ -5,8 +5,9 @@ describe Centurion::Project do
   let(:project_root)      { Centurion::TestRepo                 }
   let(:project)           { Centurion::Project.new project_root }
   let(:commits_and_files) { Centurion::TestRepoCommits          }
+  let(:frozen_moment)     { Time.now.to_i                       }
 
-  before { project.stub(:run_at).and_return Time.now.to_i }
+  before { project.stub(:run_at).and_return frozen_moment }
 
   def project_doc
     key = project.project_key project
@@ -71,7 +72,7 @@ describe Centurion::Project do
       for_each_commit {|bucket, key|
         bucket.
           get(key).
-          data['processedAt'].should == Time.now.to_i
+          data['processedAt'].should == frozen_moment
       }
     end
 
