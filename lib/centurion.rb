@@ -14,14 +14,5 @@ module Centurion
   Dir.glob(File.expand_path '../centurion/**/*.rb', __FILE__).each do |rb|
     require rb
   end
-
-  class Array < ::Array
-    def sum
-      inject 0 do |total, part|
-        total += part
-        total
-      end
-    end
-  end
 end
 

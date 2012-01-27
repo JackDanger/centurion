@@ -11,10 +11,10 @@ module Centurion
       @root = root
       @name = File.basename root
       @repo  = Grit::Repo.new root
+      @run_at = Time.now.to_i
     end
 
     def run!
-      @run_at = Time.now.to_i
       @beginning = @ending = nil
       @count = 0
 

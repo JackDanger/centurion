@@ -18,9 +18,11 @@ module Centurion
       files.each_with_index do |file, idx|
         meter_file file
       end
+      total   = totals.reduce(&:+).to_f
+      average = averages.reduce(&:+).to_f/averages.size.to_f
       project.update_commit commit,
-                            :flog        => totals.sum,
-                            :flogAverage => averages.sum/averages.size
+                            :flog        => total,
+                            :flogAverage => average
     end
 
     def self.run! options

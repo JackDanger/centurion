@@ -29,24 +29,6 @@ describe Centurion::Commission do
     it { should == commit }
   end
 
-  describe '#total' do
-    before {
-      commission.instance_variable_set :@totals,
-                                       [5.0, 10.5]
-    }
-    subject { commission.total }
-    it { should == 15.5 }
-  end
-
-  describe '#average' do
-    before {
-      commission.instance_variable_set :@averages,
-                                       [5.0, 10.5]
-    }
-    subject { commission.average }
-    it { should == 7.75 }
-  end
-
   describe '#run!' do
     Centurion::TestRepoCommits.each do |test_commit, files|
       context "for #{test_commit} => #{files.inspect}" do
@@ -95,30 +77,9 @@ describe Centurion::Commission do
         it { should == commit.sha }
       end
 
-      context 'author' do
-        let(:attribute) { :author }
-        it { should == [commit.author.name,
-                        commit.author.email] }
-      end
-
-      context 'comment' do
-        let(:attribute) { :comment }
-        it { should == commit.message }
-      end
-
       context 'processedAt' do
         let(:attribute) { :processedAt }
         it { should == frozen_moment.to_i }
-      end
-
-      context 'date' do
-        let(:attribute) { :date }
-        it { should == commit.date.to_i }
-      end
-
-      context 'parent' do
-        let(:attribute) { :parent }
-        it { should == commit.parents.first.sha }
       end
 
       context 'score' do
