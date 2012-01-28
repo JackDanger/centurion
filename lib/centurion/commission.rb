@@ -31,7 +31,7 @@ module Centurion
 
     def meter_file filename
 
-      file_flog = {:last_score => last_score(filename)}
+      file_flog = {:lastFlog => last_score(filename)}
 
       Centurion::Flog.new(
         file_contents_for(filename), filename
@@ -39,7 +39,7 @@ module Centurion
 
         file_flog.merge! method_flog.slice :average, :total
         method_name = method_flog[:method]
-        method_flog[:previous] = last_score filename, method_name
+        method_flog[:lastFlog] = last_score filename, method_name
         project.update_method commit,
                               filename,
                               method_name,

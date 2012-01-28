@@ -10,7 +10,7 @@ module Centurion
     def initialize root
       @root = root
       @name = File.basename root
-      @repo  = Grit::Repo.new root
+      @repo = Grit::Repo.new root
       @run_at = Time.now.to_i
     end
 
@@ -67,7 +67,7 @@ module Centurion
             :processedAt  => run_at,
             :flog         => flog[:total],
             :flogAverage  => flog[:average],
-            :flogDelta    => flog[:total].to_f - flog[:previous].to_f
+            :flogDelta    => flog[:total].to_f - flog[:lastFlog].to_f
     end
 
     def update_method commit, filename, method_name, flog
@@ -77,7 +77,7 @@ module Centurion
             :processedAt  => run_at,
             :flog         => flog[:total],
             :flogAverage  => flog[:average],
-            :flogDelta    => flog[:total].to_f - flog[:previous].to_f
+            :flogDelta    => flog[:total].to_f - flog[:lastFlog].to_f
     end
 
     def commits(batch_size = 200)

@@ -43,6 +43,8 @@ describe Centurion::Commission do
           end
           subject
         end
+
+        it 'calculates the total score for the commit'
       end
     end
   end
@@ -82,8 +84,8 @@ describe Centurion::Commission do
         it { should == frozen_moment.to_i }
       end
 
-      context 'score' do
-        let(:attribute) { :score }
+      context 'flog' do
+        let(:attribute) { :flog }
         before {
           Centurion::Flog.any_instance.
                           stub(:meter).
@@ -92,8 +94,8 @@ describe Centurion::Commission do
         it { should == 5.5 }
       end
 
-      context 'scoreAverage' do
-        let(:attribute) { :scoreAverage }
+      context 'flogAverage' do
+        let(:attribute) { :flogAverage }
         before {
           Centurion::Flog.any_instance.
                           stub(:meter).
@@ -102,17 +104,20 @@ describe Centurion::Commission do
         it { should == 2.3 }
       end
 
-      context 'scoreDelta' do
-        let(:attribute) { :scoreDelta }
+      context 'flogDelta' do
+        let(:attribute) { :flogDelta }
         before {
           Centurion::Flog.any_instance.
                           stub(:meter).
                           and_yield(flog_scores)
-          parent = project.
-                    commits_bucket.
-                    get_or_new(commit.parents.first.sha)
-          parent.data = {:score => 15}
-          parent.store
+          commits_and_files.each {|commit, files|
+            files.each {|file|
+              key = project.file_key(commit, file)
+              old = project.files_bucket.new(key)
+              old.data = {:flog => 15}
+              old.store
+            }
+          }
         }
         it { should == -9.5 }
       end
