@@ -21,7 +21,7 @@ rule '.html' => ['%{public,src}X.haml'] do |t|
 end
 
 task :watch do
-  %{watchr .watchr}
+  %x{watchr .watchr}
 end
 
 task :upload do
