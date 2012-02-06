@@ -90,15 +90,11 @@ describe Centurion::Project do
 
     it 'updates a project that has been run before' do
       commit = project.commits.first
-      project.update_commit commit, {}
-      Centurion::Commission.
-                  should_not_receive(:run!).
-                  with(:project => project,
-                       :commit  => commit)
-      Centurion::Commission.
-                  should_receive(:run!).
-                  with(:project => project,
-                       :commit  => project.commits.last)
+      commit.update({})
+      commit.
+        should_not_receive(:meter)
+      project.commits.last.
+        should_receive(:meter)
       subject
     end
   end

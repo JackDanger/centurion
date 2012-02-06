@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-require "centurion/version"
+require File.expand_path("../lib/centurion/version", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "centurion"

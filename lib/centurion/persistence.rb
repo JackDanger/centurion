@@ -1,66 +1,47 @@
 module Centurion
-  class Project
-    module Persistence
+  module Persistence
 
-      def store bucket, key, data
-        doc = bucket.get_or_new key
-        doc.data = data
-        doc.content_type = 'application/json'
-        doc.store
-      end
+    def store bucket, key, data
+      doc = bucket.get_or_new key
+      doc.data = data
+      doc.content_type = 'application/json'
+      doc.store
+    end
 
-      def projects_bucket
-        Centurion.db.bucket 'projects'
-      end
+    def project_name
+      is_a?(Project) ? name : project.name
+    end
 
-      def runs_bucket
-        Centurion.db.bucket 'runs'
-      end
+    def projects_bucket
+      Centurion.db.bucket 'projects'
+    end
 
-      def project_key
-        name
-      end
+    def runs_bucket
+      Centurion.db.bucket 'runs'
+    end
 
-      def authors_bucket
-        Centurion.db.bucket "#{name}_authors"
-      end
+    def authors_bucket
+      Centurion.db.bucket "#{project_name}_authors"
+    end
 
-      def commits_bucket
-        Centurion.db.bucket "#{name}_commits"
-      end
+    def commits_bucket
+      Centurion.db.bucket "#{project_name}_commits"
+    end
 
-      def files_bucket
-        Centurion.db.bucket "#{name}_files"
-      end
+    def files_bucket
+      Centurion.db.bucket "#{project_name}_files"
+    end
 
-      def methods_bucket
-        Centurion.db.bucket "#{name}_methods"
-      end
+    def methods_bucket
+      Centurion.db.bucket "#{project_name}_methods"
+    end
 
-      def run_key
-        "#{name}:#{run_at}"
-      end
+    def run_key
+      "#{project_name}:#{run_at}"
+    end
 
-      def commit_key commit
-        commit.sha
-      end
-
-      def file_key commit, file
-        sha  = commit.is_a?(String) ? commit : commit.sha
-        file = digest file
-        "#{sha}:#{file}"
-      end
-
-      def method_key commit, file, method
-        sha    = commit.is_a?(String) ? commit : commit.sha
-        file   = digest file
-        method = digest method
-        "#{sha}:#{file}:#{method}"
-      end
-
-      def digest string
-        Digest::SHA1.hexdigest(string)[0..7]
-      end
+    def digest string
+      Digest::SHA1.hexdigest(string)[0..7]
     end
   end
 end

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Centurion::Commission do
+describe Centurion::Commit do
 
   let(:project_root)      { Centurion::TestRepo                 }
   let(:project)           { Centurion::Project.new project_root }
@@ -8,69 +8,55 @@ describe Centurion::Commission do
   let(:commits_and_files) { Centurion::TestRepoCommits          }
   let(:project_name)      { 'test_repo'                         }
   let(:frozen_moment)     { Time.now                            }
-
-  let(:commission) {
-    Centurion::Commission.new :project => project,
-                              :commit  => commit
-  }
+  let(:commit)            { project.commits.first               }
 
   describe '#repo' do
-    subject { commission.repo.working_dir }
+    subject { commit.repo.working_dir }
     it { should == project_root }
   end
 
   describe '#project' do
-    subject { commission.project }
+    subject { commit.project }
     it { should == project }
   end
 
-  describe '#commit' do
-    subject { commission.commit }
-    it { should == commit }
-  end
-
-  describe '#run!' do
-    Centurion::TestRepoCommits.each do |test_commit, files|
-      context "for #{test_commit} => #{files.inspect}" do
-        let(:commit) { test_commit }
-        subject { commission.run! }
-
-        it 'calculates all (and only) files from the given commit' do
-          files.each do |file|
-            commission.should_receive(:meter_file).
-                       with(file).
-                       once
-          end
-          subject
-        end
-
-        it 'calculates the total score for the commit'
-      end
-    end
-  end
-
-  describe '#meter_file' do
-
+  describe '#meter' do
     let(:commit)   { commits_and_files.keys.first      }
     let(:file)     { commits_and_files.values.first[0] }
-    let(:file_key) { project.file_key commit, file     }
+    let(:filename) { file.name                         }
+    let(:file_key) { file.key                          }
     let(:flog_scores) {{
       :total   => 5.5,
       :average => 2.3,
       :method  => 'File#open'
     }}
 
-    subject { commission.meter_file file }
+    Centurion::TestRepoCommits.each do |test_commit, files|
+      context "for #{test_commit.sha} => #{files.map(&:name).inspect}" do
+        let(:commit) { test_commit }
+        subject { commit.meter }
 
-    it 'creates new file record' do
-      expect { subject }.to change {
-        project.files_bucket.exists? file_key
-      }
+        it 'calculates all (and only) files from the given commit' do
+          # files.each do |file|
+          #   file.should_receive(:meter).once
+          # end
+          expect { subject }.to change {
+            project.files_bucket.keys(:reload => true).size
+          }.by files.size
+        end
+
+        it 'calculates the total score for the commit'
+
+        it 'creates new file record' do
+          expect { subject }.to change {
+            project.files_bucket.exists? files.first.key
+          }
+        end
+      end
     end
-
     context 'data[]' do
       subject {
-        commission.meter_file file
+        commit.meter
         project.files_bucket.get(file_key).data[attribute.to_s]
       }
 
@@ -112,8 +98,7 @@ describe Centurion::Commission do
                           and_yield(flog_scores)
           commits_and_files.each {|commit, files|
             files.each {|file|
-              key = project.file_key(commit, file)
-              old = project.files_bucket.new(key)
+              old = project.files_bucket.new(file.key)
               old.data = {:flog => 15}
               old.store
             }

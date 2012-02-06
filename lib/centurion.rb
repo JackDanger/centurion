@@ -6,13 +6,24 @@ module Centurion
     @db ||= Riak::Client.new
   end
 
-  autoload :Persistence, 'centurion/persistence'
-  autoload :Project,     'centurion/project'
-  autoload :Commission,  'centurion/commission'
-  autoload :Flog,        'centurion/flog'
+  Dir.glob(::File.expand_path '../centurion/**/*.rb', __FILE__).each do |source|
 
-  Dir.glob(File.expand_path '../centurion/**/*.rb', __FILE__).each do |rb|
-    require rb
+    klass = ::File.basename(source).sub(/^./, &:upcase).chomp('.rb')
+    autoload klass, source
+  end
+end
+
+def silently
+  old_error, $stderr = $stderror, StringIO.new
+    yield
+ensure
+  $stderror = old_error
+end
+
+silently do
+  module Grit
+    Commit = Centurion::Commit
+    Repo = Centurion::Repo
   end
 end
 
