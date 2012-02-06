@@ -21,7 +21,7 @@ rule '.html' => ['%{public,src}X.haml'] do |t|
 end
 
 task :watch do
-  exec %Q[bundle exec watchr -e "watch('src/.*') { %x{rake public upload} }"]
+  %{watchr .watchr}
 end
 
 task :upload do
