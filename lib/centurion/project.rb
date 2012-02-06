@@ -49,16 +49,21 @@ module Centurion
             :created_at    => run_at
     end
 
+    def commit_batch limit, offset
+      Commit.find_all(repo, 'HEAD',
+                      :max_count => limit,
+                      :skip      => offset
+                     ).each { |commit|
+                       commit.project = self
+                     }
+    end
+
     def commits(batch_size = 200)
       found = []
       offset = 0
       begin
-        batch = Commit.find_all repo, 'HEAD',
-                                :max_count => batch_size,
-                                :skip => offset
-        batch.each {|commit| commit.project = self }
-
-        if block_given? && !batch.empty?
+        batch = commit_batch batch_size, offset
+        if block_given?
           batch.each do |commit|
             yield commit
           end
