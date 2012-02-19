@@ -3,9 +3,9 @@ module Centurion
 
     include Persistence
 
-    attr_reader :root, :name, :repo,
-                :run_at, :duration, :verbose,
-                :beginning, :ending, :count
+    attr_accessor :root, :name, :repo,
+                  :run_at, :duration, :verbose,
+                  :beginning, :ending, :count
 
     def initialize options
       @root    = options[:project_root]
@@ -13,19 +13,19 @@ module Centurion
       @name    = ::File.basename root
       @repo    = Repo.new root
       @run_at  = Time.now.to_i
+      @count   = 0
     end
 
     def run!
       @beginning = @ending = nil
-      @count = 0
 
       commits do |commit|
-        next if commits_bucket.exists? commit.sha
+        next if commits_bucket.exists? commit.key
         puts "processing #{commit.sha}" if verbose
 
         commit.meter
 
-        @count += 1
+        self.count += 1
         @ending  ||= commit
         @beginning = commit
       end
