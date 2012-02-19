@@ -9,14 +9,14 @@ module Centurion
 
     def initialize options
       @root    = options[:project_root]
-      @verbose = options[:verbose]
       @name    = ::File.basename root
       @repo    = Repo.new root
       @run_at  = Time.now.to_i
       @count   = 0
     end
 
-    def run!
+    def run! run_options = {}
+      @verbose = run_options[:verbose]
       @beginning = @ending = nil
 
       commits do |commit|

@@ -10,7 +10,7 @@ module Centurion
   end
   # Every commit and file from the test_repo git history
   # (excluding the initial commit)
-  project = Project.new TestRepo
+  project = Project.new :project_root => TestRepo
   TestRepoCommits = {
      '7a0f9310adc672d2f16ea1b800780c49130ccea6' => ['rowan.rb', 'cleese.rb'],
      '8ad3ea51e4993f687a38332c01e52d1072f5c47b' => ['cleese.rb'],

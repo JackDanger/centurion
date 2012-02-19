@@ -3,7 +3,8 @@ require 'spec_helper'
 describe Centurion::Project do
 
   let(:project_root)      { Centurion::TestRepo                 }
-  let(:project)           { Centurion::Project.new project_root }
+  let(:options)           {{ :project_root => project_root     }}
+  let(:project)           { Centurion::Project.new options      }
   let(:commits_and_files) { Centurion::TestRepoCommits          }
   let(:frozen_moment)     { Time.now.to_i                       }
 
