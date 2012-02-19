@@ -76,10 +76,13 @@ describe Centurion::Project do
       }
     end
 
-    it 'creates new run record' do
-      expect { subject }.to change {
-        project.runs_bucket.exists? 'run-key'
-      }
+    it 'records the commits that are processed' do
+      project.runs_bucket.exists?('run-key').should be_false
+      subject
+      doc = project.runs_bucket.get('run-key')
+      doc.data['commits'].should == project.commits.size
+      doc.data['start'].should   == project.commits.last.sha
+      doc.data['end'].should     == project.commits.first.sha
     end
 
     it 'updates project record' do
