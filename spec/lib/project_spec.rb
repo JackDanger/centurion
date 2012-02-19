@@ -86,20 +86,26 @@ describe Centurion::Project do
       doc.data['duration'].should be_within(2.5).of(2.8)
     end
 
+    it 'meters just new commits' do
+      until project.commits_bucket.keys(:reload => true).empty?
+        sleep 0.1
+      end
+      project.commits.first.update({}) # pretend this was metered already
+      expect { subject }.to change {
+        project.commits_bucket.keys(:reload => true).size
+      }.by(project.commits.size - 1)
+    end
+
     it 'updates project record' do
       expect { subject }.to change {
         project.projects_bucket.exists? project.name
       }
     end
 
-    it 'updates just new commits' do
-      until project.commits_bucket.keys(:reload => true).empty?
-        sleep 0.2
-      end
-      project.commits.first.update({}) # pretend this was metered already
-      expect { subject }.to change {
-        project.commits_bucket.keys(:reload => true).size
-      }.by(project.commits.size - 1)
+    it 'stores a cache of all commit keys' do
+      project.commit_cache.should be_nil
+      subject
+      project.commit_cache.data['shas'].should == project.commits.map(&:sha)
     end
   end
 
