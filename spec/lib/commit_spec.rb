@@ -4,7 +4,6 @@ describe Centurion::Commit do
 
   let(:project_root)      { Centurion::TestRepo                 }
   let(:project)           { Centurion::Project.new project_root }
-  let(:commit)            { project.repo.commits.first          }
   let(:commits_and_files) { Centurion::TestRepoCommits          }
   let(:project_name)      { 'test_repo'                         }
   let(:frozen_moment)     { Time.now                            }
@@ -21,8 +20,9 @@ describe Centurion::Commit do
   end
 
   describe '#meter' do
-    let(:commit)   { commits_and_files.keys.first      }
-    let(:file)     { commits_and_files.values.first[0] }
+    let(:file) { commits_and_files.detect { |c,f|
+                        c == commit
+                    }.last[0]                          }
     let(:filename) { file.name                         }
     let(:file_key) { file.key                          }
     let(:flog_scores) {{
