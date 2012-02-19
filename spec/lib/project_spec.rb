@@ -63,9 +63,8 @@ describe Centurion::Project do
     it {
       expect { subject }.to change {
         for_each_commit {|bucket, key| bucket.exists? key }
-      }.from([false]*4).
-        to(  [true ]*4)
-    }
+      }.from([false]*5).
+        to(  [true ]*5) }
 
     it 'sets processedAt' do
       subject
