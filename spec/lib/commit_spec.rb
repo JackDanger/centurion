@@ -100,7 +100,7 @@ describe Centurion::Commit do
             files.each {|file|
               old = project.files_bucket.new(file.key)
               old.data = {:flog => 15}
-              old.store
+              old.store :dw => 'all'
             }
           }
         }
