@@ -87,14 +87,14 @@ describe Centurion::Project do
       }
     end
 
-    it 'updates a project that has been run before' do
-      commit = project.commits.first
-      commit.update({})
-      commit.
-        should_not_receive(:meter)
-      project.commits.last.
-        should_receive(:meter)
-      subject
+    it 'updates just new commits' do
+      until project.commits_bucket.keys(:reload => true).empty?
+        sleep 0.2
+      end
+      project.commits.first.update({}) # pretend this was metered already
+      expect { subject }.to change {
+        project.commits_bucket.keys(:reload => true).size
+      }.by(project.commits.size - 1)
     end
   end
 
