@@ -16,7 +16,7 @@ describe Centurion::Project do
 
   def for_each_commit
     project.commits.map do |commit|
-      key = project.commit_key commit
+      key = commit.key
       bucket = project.commits_bucket
       yield bucket, key
     end
