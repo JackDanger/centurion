@@ -83,6 +83,7 @@ describe Centurion::Project do
       doc.data['commits'].should == project.commits.size
       doc.data['start'].should   == project.commits.last.sha
       doc.data['end'].should     == project.commits.first.sha
+      doc.data['duration'].should be_within(2.5).of(2.8)
     end
 
     it 'updates project record' do

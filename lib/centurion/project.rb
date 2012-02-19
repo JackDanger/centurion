@@ -30,7 +30,7 @@ module Centurion
         @beginning = commit
       end
 
-      @duration = Time.now.to_i - run_at
+      @duration = Time.now - run_at
       update if count > 0
     end
 
@@ -47,9 +47,10 @@ module Centurion
             key,
             :last_sha      => ending.sha,
             :updated_at    => run_at,
-            :last_duration => duration
+            :last_duration => duration.to_f
       store runs_bucket,
             run_key,
+            :duration      => duration.to_f,
             :commits       => count,
             :start         => beginning.sha,
             :end           => ending.sha,
