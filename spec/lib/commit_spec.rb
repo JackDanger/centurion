@@ -37,15 +37,10 @@ describe Centurion::Commit do
         subject { commit.meter }
 
         it 'calculates all (and only) files from the given commit' do
-          # files.each do |file|
-          #   file.should_receive(:meter).once
-          # end
           expect { subject }.to change {
             project.files_bucket.keys(:reload => true).size
           }.by files.size
         end
-
-        it 'calculates the total score for the commit'
 
         it 'creates new file record' do
           expect { subject }.to change {
