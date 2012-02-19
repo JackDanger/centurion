@@ -19,8 +19,9 @@ module Centurion
       @count = 0
 
       commits do |commit|
-        commit.meter
         next if commits_bucket.exists? commit.sha
+
+        commit.meter
 
         @count += 1
         @ending  ||= commit
