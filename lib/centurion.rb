@@ -14,10 +14,10 @@ module Centurion
 end
 
 def silently
-  old_error, $stderr = $stderror, StringIO.new
+  old_error, $stderr = $stderr, StringIO.new
     yield
 ensure
-  $stderror = old_error
+  $stderr = old_error
 end
 
 silently do
