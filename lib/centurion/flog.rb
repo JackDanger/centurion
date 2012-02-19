@@ -24,25 +24,11 @@ module Centurion
     end
 
     def flog_source(ruby, file)
-      warn "** flogging #{file}" if option[:verbose]
-
       ast = @parser.process(ruby, file)
       return unless ast
       mass[file] = ast.mass
       process ast
-    rescue RegexpError, SyntaxError, Racc::ParseError => e
-      if e.inspect =~ /<%|%>/ or ruby =~ /<%|%>/ then
-        warn "#{e.inspect} at #{e.backtrace.first(5).join(', ')}"
-        warn "\n...stupid lemmings and their bad erb templates... skipping"
-      else
-        warn "ERROR: parsing ruby file #{file}"
-        unless option[:continue] then
-          warn "ERROR! Aborting. You may want to run with --continue."
-          raise e
-        end
-        warn "#{e.class}: #{e.message.strip} at:"
-        warn "  #{e.backtrace.first(5).join("\n  ")}"
-      end
+    rescue RegexpError, SyntaxError, Racc::ParseError
     end
   end
 end
