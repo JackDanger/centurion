@@ -34,6 +34,10 @@ module Centurion
       update if count > 0
     end
 
+    def verbose?
+      verbose
+    end
+
     def key
       name
     end

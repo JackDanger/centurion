@@ -14,7 +14,12 @@ module Centurion
     end
 
     def meter
-      files.each &:meter
+      files.each do |file|
+        file.meter
+        print '.' if project.verbose?
+      end
+
+      puts '' if project.verbose?
 
       total   =   totals.reduce(&:+).to_f
       average = averages.reduce(&:+).to_f / averages.size.to_f
