@@ -6,7 +6,7 @@ describe Centurion::Commit do
   let(:project)           { Centurion::Project.new project_root }
   let(:commits_and_files) { Centurion::TestRepoCommits          }
   let(:project_name)      { 'test_repo'                         }
-  let(:frozen_moment)     { Time.now                            }
+  let(:frozen_moment)     { project.run_at                      }
   let(:commit)            { project.commits.first               }
 
   describe '#repo' do
