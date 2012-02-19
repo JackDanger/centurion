@@ -4,14 +4,15 @@ module Centurion
     include Persistence
 
     attr_reader :root, :name, :repo,
-                :run_at, :duration,
+                :run_at, :duration, :verbose,
                 :beginning, :ending, :count
 
-    def initialize root
-      @root = root
-      @name = ::File.basename root
-      @repo = Repo.new root
-      @run_at = Time.now.to_i
+    def initialize options
+      @root    = options[:project_root]
+      @verbose = options[:verbose]
+      @name    = ::File.basename root
+      @repo    = Repo.new root
+      @run_at  = Time.now.to_i
     end
 
     def run!
@@ -20,6 +21,7 @@ module Centurion
 
       commits do |commit|
         next if commits_bucket.exists? commit.sha
+        puts "processing #{commit.sha}" if verbose
 
         commit.meter
 
