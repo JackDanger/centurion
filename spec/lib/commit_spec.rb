@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Centurion::Commit do
 
   let(:project_root)      { Centurion::TestRepo                 }
-  let(:project)           { Centurion::Project.new project_root }
+  let(:project)           { Centurion::TestProject              }
   let(:commits_and_files) { Centurion::TestRepoCommits          }
   let(:project_name)      { 'test_repo'                         }
   let(:frozen_moment)     { project.run_at                      }

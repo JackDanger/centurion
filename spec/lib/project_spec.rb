@@ -3,12 +3,9 @@ require 'spec_helper'
 describe Centurion::Project do
 
   let(:project_root)      { Centurion::TestRepo                 }
-  let(:options)           {{ :project_root => project_root     }}
-  let(:project)           { Centurion::Project.new options      }
+	let(:project)           { Centurion::TestProject              }
   let(:commits_and_files) { Centurion::TestRepoCommits          }
-  let(:frozen_moment)     { Time.now.to_i                       }
-
-  before { project.stub(:run_at).and_return frozen_moment }
+  let(:frozen_moment)     { project.run_at                      }
 
   def project_doc
     key = project.project_key project
@@ -53,7 +50,7 @@ describe Centurion::Project do
     end
   end
 
-  describe '#run!' do
+  describe 'project analysis' do
 
     before {
       project.stub(:run_key).and_return('run-key')
@@ -133,4 +130,41 @@ describe Centurion::Project do
     subject { project.runs_bucket.name }
     it { should == "runs" }
   end
+
+	describe 'method analysis' do
+
+    let(:sha)               {	"c96fc1175a33ee5d398e40d7cfed6fc702188cbd" }
+    let(:previous_sha)      { "702089b0b487e59d85e3a39d56eb0fdba85dbf2c" }
+    let(:file)              { commits_and_files.map(&:last).last[0]      } # cleese.rb
+    let(:commit)            { commits_and_files.map(&:first).detect {|c| c.sha == sha } }
+    let(:previous_commit)   { commits_and_files.map(&:first).detect {|c| c.sha == previous_sha } }
+    let(:name)              { 'Cleese#name'                              }
+    let(:method)            { Centurion::Method.new options              }
+    let(:options) {{
+      :file => file,
+      :name => name,
+      :commit => commit,
+      :project => project
+    }}
+
+		subject {
+			project.methods_bucket.get_or_new(method.key).data
+		}
+
+		it 'creates a record' do
+			project.methods_bucket.exists?(method.key)
+		end
+
+		it 'calculates a score' do
+			subject['flog'].should be_within(0.1).of(3.6)
+		end
+
+		it 'calculated a score delta' do
+			subject['flogDelta'].should be_within(0.1).of(1.2)
+		end
+
+		it 'records method name' do
+			subject['name'].should == name
+		end
+	end
 end

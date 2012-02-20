@@ -49,7 +49,9 @@ module Centurion
     end
 
     def last_score
-      return 0 unless sha = last_change
+      sha = last_change
+      puts "last_score for #{commit.sha} #{sha || 0}"
+      return 0 unless sha
       doc = files_bucket.get_or_new key(sha)
       doc.data ? doc.data['flog'] : 0
     end
