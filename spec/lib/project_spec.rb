@@ -120,7 +120,7 @@ describe Centurion::Project do
 
     let(:sha)               {	"c96fc1175a33ee5d398e40d7cfed6fc702188cbd" }
     let(:previous_sha)      { "702089b0b487e59d85e3a39d56eb0fdba85dbf2c" }
-    let(:file)              { commits_and_files.map(&:last).last[0]      } # cleese.rb
+    let(:file)              { commits_and_files.detect {|c,_| c.sha == sha }.last[0] } # cleese.rb
     let(:commit)            { commits_and_files.detect {|c,_| c.sha == sha }.first }
     let(:previous_commit)   { commits_and_files.detect {|c,_| c.sha == previous_sha }.first }
     let(:name)              { 'Cleese#name'                              }
@@ -151,7 +151,7 @@ describe Centurion::Project do
 		end
 
 		it 'calculates a score' do
-			subject['flog'].should be_within(0.1).of(2.4)
+			subject['flog'].should be_within(0.1).of(3.6)
 		end
 
 		it 'records method name' do
