@@ -30,7 +30,6 @@
   * parent
   * score
   * {other flog details}
-  * scoreDelta
 
 ## Commit:Files
 
@@ -41,7 +40,6 @@
   * isRemoved
   * score
   * {other flog details}
-  * scoreDelta
   * lastChanged (parentsha:file in same bucket)
 
 ## Commit:File:Methods

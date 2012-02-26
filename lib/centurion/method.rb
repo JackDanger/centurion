@@ -9,8 +9,6 @@ module Centurion
                 :project
 
     def initialize options
-			puts "initialize(options)"
-			p options
       @name    = options[:name]
       @file    = options[:file]
       @commit  = file.commit
@@ -24,22 +22,12 @@ module Centurion
     end
 
     def update flog
-			puts "update method(flog): #{name}"
-			p flog
       store methods_bucket, key,
             :sha          => commit.sha,
             :processedAt  => project.run_at,
 						:name         => name,
             :flog         => flog[:total],
-            :flogAverage  => flog[:average],
-            :flogDelta    => flog[:total].to_f - flog[:lastFlog].to_f
-    end
-
-
-    def last_score
-      return 0 unless sha = commit.last_change
-      doc = methods_bucket.get_or_new key(sha)
-      doc.data ? doc.data['flog'] : 0
+            :flogAverage  => flog[:average]
     end
   end
 end

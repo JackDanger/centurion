@@ -14,13 +14,12 @@ module Centurion
     end
 
     def meter
-      flog = {:lastFlog => last_score}
-
+      flog = {}
       Flog.new(contents, name).meter do |method_flog|
         method = Method.new :name => method_flog[:method],
                             :file => self
 
-        flog.merge! method_flog.slice :average, :total
+        flog = method_flog.slice :average, :total
         method.update method_flog
       end
 
@@ -40,20 +39,11 @@ module Centurion
             :sha          => commit.sha,
             :processedAt  => project.run_at,
             :flog         => flog[:total],
-            :flogAverage  => flog[:average],
-            :flogDelta    => flog[:total].to_f - flog[:lastFlog].to_f
+            :flogAverage  => flog[:average]
     end
 
     def contents
       `cd #{project.root} && git show #{commit.sha}:#{name}`
-    end
-
-    def last_score
-      sha = last_change
-      puts "last_score for #{commit.sha} #{sha || 0}"
-      return 0 unless sha
-      doc = files_bucket.get_or_new key(sha)
-      doc.data ? doc.data['flog'] : 0
     end
 
     def last_change

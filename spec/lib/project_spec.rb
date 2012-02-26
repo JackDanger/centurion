@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Centurion::Project do
 
   let(:project_root)      { Centurion::TestRepo                 }
-	let(:project)           { Centurion::TestProject              }
+	let(:project)           { Centurion.test_project              }
   let(:commits_and_files) { Centurion::TestRepoCommits          }
   let(:frozen_moment)     { project.run_at                      }
 
@@ -31,23 +31,8 @@ describe Centurion::Project do
   end
 
   describe '#commits' do
-    # try different batch sizes, ensure batching works
-    [1,2,3,4,5].each {|batch_size|
-      subject { project.commits batch_size }
-      it { should == Grit::Repo.new(project_root).commits }
-    }
-
-    context 'one batch at a time' do
-      let(:batch_size) { 2 }
-      it 'yields each batch' do
-        catcher = Object.new
-        catcher.should_receive(:batch_received).
-                exactly(project.commits.size).times
-        project.commits(batch_size) do |commit|
-          catcher.batch_received
-        end
-      end
-    end
+    subject { project.commits }
+    it { should == Grit::Repo.new(project_root).commits.reverse }
   end
 
   describe 'project analysis' do
@@ -136,8 +121,8 @@ describe Centurion::Project do
     let(:sha)               {	"c96fc1175a33ee5d398e40d7cfed6fc702188cbd" }
     let(:previous_sha)      { "702089b0b487e59d85e3a39d56eb0fdba85dbf2c" }
     let(:file)              { commits_and_files.map(&:last).last[0]      } # cleese.rb
-    let(:commit)            { commits_and_files.map(&:first).detect {|c| c.sha == sha } }
-    let(:previous_commit)   { commits_and_files.map(&:first).detect {|c| c.sha == previous_sha } }
+    let(:commit)            { commits_and_files.detect {|c,_| c.sha == sha }.first }
+    let(:previous_commit)   { commits_and_files.detect {|c,_| c.sha == previous_sha }.first }
     let(:name)              { 'Cleese#name'                              }
     let(:method)            { Centurion::Method.new options              }
     let(:options) {{
@@ -148,7 +133,17 @@ describe Centurion::Project do
     }}
 
 		subject {
-			project.methods_bucket.get_or_new(method.key).data
+      project.run!
+      data = nil
+      begin
+        data = project.methods_bucket.get(method.key).data
+      rescue Riak::HTTPFailedRequest
+        sleep 0.3
+        @retries ||= 0
+        @retries += 1
+        retry if @retries < 10
+      end
+      data
 		}
 
 		it 'creates a record' do
@@ -156,11 +151,7 @@ describe Centurion::Project do
 		end
 
 		it 'calculates a score' do
-			subject['flog'].should be_within(0.1).of(3.6)
-		end
-
-		it 'calculated a score delta' do
-			subject['flogDelta'].should be_within(0.1).of(1.2)
+			subject['flog'].should be_within(0.1).of(2.4)
 		end
 
 		it 'records method name' do

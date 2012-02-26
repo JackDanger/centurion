@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Centurion::Commit do
 
   let(:project_root)      { Centurion::TestRepo                 }
-  let(:project)           { Centurion::TestProject              }
+  let(:project)           { Centurion.test_project              }
   let(:commits_and_files) { Centurion::TestRepoCommits          }
   let(:project_name)      { 'test_repo'                         }
   let(:frozen_moment)     { project.run_at                      }
@@ -38,6 +38,7 @@ describe Centurion::Commit do
 
         it 'calculates all (and only) files from the given commit' do
           expect { subject }.to change {
+            sleep 0.2
             project.files_bucket.keys(:reload => true).size
           }.by files.size
         end
@@ -83,23 +84,6 @@ describe Centurion::Commit do
                           and_yield(flog_scores)
         }
         it { should == 2.3 }
-      end
-
-      context 'flogDelta' do
-        let(:attribute) { :flogDelta }
-        before {
-          Centurion::Flog.any_instance.
-                          stub(:meter).
-                          and_yield(flog_scores)
-          commits_and_files.each {|commit, files|
-            files.each {|file|
-              old = project.files_bucket.new(file.key)
-              old.data = {:flog => 15}
-              old.store :dw => 'all'
-            }
-          }
-        }
-        it { should == -9.5 }
       end
     end
   end
