@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    centurion (0.0.1)
+    centurion (0.1.0)
       clip
       flay
       flog
