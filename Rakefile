@@ -24,6 +24,7 @@ task :watch do
   %x{watchr .watchr}
 end
 
+desc "Upload the app to the given ENV['RIAK'] store"
 task :upload do
   riak = ENV['RIAK'] || 'http://localhost:8098/riak/app'
 
