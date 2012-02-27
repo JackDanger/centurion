@@ -51,9 +51,10 @@ ProjectView = Backbone.View.extend
 ProjectList = Backbone.Collection.extend
 
   model: Project
-  url: '/riak?buckets=true'
+  url: '/riak/projects?keys=true'
   parse: (response, xhr) ->
-    _.map response.buckets, (bucket) -> {name: bucket}
+    console.log response
+    _.map response.keys, (bucket) -> {name: bucket}
 
 ProjectListView = Backbone.View.extend
   tagname: 'section'

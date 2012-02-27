@@ -71,9 +71,10 @@ ProjectView = Backbone.View.extend({
 
 ProjectList = Backbone.Collection.extend({
   model: Project,
-  url: '/riak?buckets=true',
+  url: '/riak/projects?keys=true',
   parse: function(response, xhr) {
-    return _.map(response.buckets, function(bucket) {
+    console.log(response);
+    return _.map(response.keys, function(bucket) {
       return {
         name: bucket
       };
