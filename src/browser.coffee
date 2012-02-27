@@ -6,6 +6,7 @@ CommitList = Backbone.Collection.extend
   initialize: (options) ->
     this.project = options.project
     this.view = options.view
+    this.bind 'reset', this.view.renderCommits, this
   model: Commit
   fetch: () ->
     collection = this
@@ -13,10 +14,8 @@ CommitList = Backbone.Collection.extend
     mapper.map source: (data) ->
       json = Riak.mapValuesJson(data)[0]
       [{sha:  json.sha, flog: json.flog, date: json.date}]
-    mapper.run (ok, filenames, xhr) ->
-      console.log filenames
-      files = _.map(filenames, (filename) -> {filename: filename})
-      collection.add files
+    mapper.run (ok, commits, xhr) ->
+      collection.reset commits
       collection.project.trigger('changed')
 
 Source = Backbone.Model.extend()
@@ -70,6 +69,9 @@ ProjectView = Backbone.View.extend
                     sourceList: this.model.sourceList.toJSON(),
                   })
     this
+  renderCommits: (commitList) ->
+    console.log 'one time'
+    console.log a, b
 
 ProjectList = Backbone.Collection.extend
 

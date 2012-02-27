@@ -5,7 +5,8 @@ Commit = Backbone.Model.extend();
 CommitList = Backbone.Collection.extend({
   initialize: function(options) {
     this.project = options.project;
-    return this.view = options.view;
+    this.view = options.view;
+    return this.bind('reset', this.view.renderCommits, this);
   },
   model: Commit,
   fetch: function() {
@@ -25,15 +26,8 @@ CommitList = Backbone.Collection.extend({
         ];
       }
     });
-    return mapper.run(function(ok, filenames, xhr) {
-      var files;
-      console.log(filenames);
-      files = _.map(filenames, function(filename) {
-        return {
-          filename: filename
-        };
-      });
-      collection.add(files);
+    return mapper.run(function(ok, commits, xhr) {
+      collection.reset(commits);
       return collection.project.trigger('changed');
     });
   }
@@ -113,6 +107,10 @@ ProjectView = Backbone.View.extend({
       sourceList: this.model.sourceList.toJSON()
     }));
     return this;
+  },
+  renderCommits: function(commitList) {
+    console.log('one time');
+    return console.log(a, b);
   }
 });
 
