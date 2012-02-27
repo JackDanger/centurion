@@ -1,5 +1,24 @@
 
 
+Commit = Backbone.Model.extend()
+
+CommitList = Backbone.Collection.extend
+  initialize: (options) ->
+    this.project = options.project
+    this.view = options.view
+  model: Commit
+  fetch: () ->
+    collection = this
+    mapper = new RiakMapper Riak, this.project.commitBucket()
+    mapper.map source: (data) ->
+      json = Riak.mapValuesJson(data)[0]
+      [{sha:  json.sha, flog: json.flog, date: json.date}]
+    mapper.run (ok, filenames, xhr) ->
+      console.log filenames
+      files = _.map(filenames, (filename) -> {filename: filename})
+      collection.add files
+      collection.project.trigger('changed')
+
 Source = Backbone.Model.extend()
 
 SourceList = Backbone.Collection.extend
@@ -27,6 +46,8 @@ Project = Backbone.Model.extend
   initialize: ->
     this.sourceList = new SourceList()
     this.sourceList.project = this
+  commitBucket: ->
+    this.get('name') + '_commits'
 
 ProjectView = Backbone.View.extend
 
@@ -36,15 +57,17 @@ ProjectView = Backbone.View.extend
 
   initialize: ->
     this.template = _.template $('#project-template').html()
+    this.commitList = new CommitList({view: this, project: this.model})
     this.model.sourceList.bind 'add', this.render, this
     this.model.sourceList.fetch()
 
   render: ->
     console.log JSON.stringify(this.model.sourceList.toJSON())
+    this.commitList.fetch()
     $element = $(this.el)
     $element.html this.template({
                     project: this.model.toJSON(),
-                    sourceList: this.model.sourceList.toJSON()
+                    sourceList: this.model.sourceList.toJSON(),
                   })
     this
 

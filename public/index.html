@@ -74,6 +74,7 @@
   <script id='project-template' type='text/template'>
     <div id='project'>
       <h5>Project Files</h5>
+      <div class='commitlist'></div>
       <ul class='sourcelist'>
         <% _.each(sourceList, function(source) { %> <li><a href="#source/<%= source.filename %>"><%= source.filename %></a></li> <% }); %>
       </ul>

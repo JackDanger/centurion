@@ -1,4 +1,43 @@
-var Centurion, Project, ProjectList, ProjectListView, ProjectView, Source, SourceList;
+var Centurion, Commit, CommitList, Project, ProjectList, ProjectListView, ProjectView, Source, SourceList;
+
+Commit = Backbone.Model.extend();
+
+CommitList = Backbone.Collection.extend({
+  initialize: function(options) {
+    this.project = options.project;
+    return this.view = options.view;
+  },
+  model: Commit,
+  fetch: function() {
+    var collection, mapper;
+    collection = this;
+    mapper = new RiakMapper(Riak, this.project.commitBucket());
+    mapper.map({
+      source: function(data) {
+        var json;
+        json = Riak.mapValuesJson(data)[0];
+        return [
+          {
+            sha: json.sha,
+            flog: json.flog,
+            date: json.date
+          }
+        ];
+      }
+    });
+    return mapper.run(function(ok, filenames, xhr) {
+      var files;
+      console.log(filenames);
+      files = _.map(filenames, function(filename) {
+        return {
+          filename: filename
+        };
+      });
+      collection.add(files);
+      return collection.project.trigger('changed');
+    });
+  }
+});
 
 Source = Backbone.Model.extend();
 
@@ -45,6 +84,9 @@ Project = Backbone.Model.extend({
   initialize: function() {
     this.sourceList = new SourceList();
     return this.sourceList.project = this;
+  },
+  commitBucket: function() {
+    return this.get('name') + '_commits';
   }
 });
 
@@ -54,12 +96,17 @@ ProjectView = Backbone.View.extend({
   model: Project,
   initialize: function() {
     this.template = _.template($('#project-template').html());
+    this.commitList = new CommitList({
+      view: this,
+      project: this.model
+    });
     this.model.sourceList.bind('add', this.render, this);
     return this.model.sourceList.fetch();
   },
   render: function() {
     var $element;
     console.log(JSON.stringify(this.model.sourceList.toJSON()));
+    this.commitList.fetch();
     $element = $(this.el);
     $element.html(this.template({
       project: this.model.toJSON(),
