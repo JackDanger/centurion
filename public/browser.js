@@ -15,15 +15,7 @@ CommitList = Backbone.Collection.extend({
     mapper = new RiakMapper(Riak, this.project.commitBucket());
     mapper.map({
       source: function(data) {
-        var json;
-        json = Riak.mapValuesJson(data)[0];
-        return [
-          {
-            sha: json.sha,
-            flog: json.flog,
-            date: json.date
-          }
-        ];
+        return Riak.mapValuesJson(data);
       }
     });
     return mapper.run(function(ok, commits, xhr) {
@@ -109,8 +101,9 @@ ProjectView = Backbone.View.extend({
     return this;
   },
   renderCommits: function(commitList) {
-    console.log('one time');
-    return console.log(a, b);
+    return _.each(commitList.models, function(model) {
+      return console.log(model);
+    });
   }
 });
 

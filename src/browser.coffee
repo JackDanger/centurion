@@ -11,9 +11,7 @@ CommitList = Backbone.Collection.extend
   fetch: () ->
     collection = this
     mapper = new RiakMapper Riak, this.project.commitBucket()
-    mapper.map source: (data) ->
-      json = Riak.mapValuesJson(data)[0]
-      [{sha:  json.sha, flog: json.flog, date: json.date}]
+    mapper.map source: (data) -> Riak.mapValuesJson(data)
     mapper.run (ok, commits, xhr) ->
       collection.reset commits
       collection.project.trigger('changed')
@@ -70,8 +68,8 @@ ProjectView = Backbone.View.extend
                   })
     this
   renderCommits: (commitList) ->
-    console.log 'one time'
-    console.log a, b
+    _.each commitList.models, (model) ->
+      console.log model
 
 ProjectList = Backbone.Collection.extend
 
