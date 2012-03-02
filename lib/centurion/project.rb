@@ -54,14 +54,6 @@ module Centurion
             :start         => beginning.sha,
             :end           => ending.sha,
             :created_at    => run_at
-      store commit_caches_bucket,
-            key,
-            :shas          => commits.map(&:sha)
-    end
-
-    def commit_cache
-      commit_caches_bucket.get key
-    rescue Riak::FailedRequest
     end
 
     def commits(batch_size = 200)

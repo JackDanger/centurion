@@ -38,7 +38,7 @@ module Centurion
       end
     end
 
-    def update flog
+    def update data
       store commits_bucket, key,
             :sha          => sha,
             :date         => date.to_i,
@@ -48,8 +48,8 @@ module Centurion
                               author.email],
             :authorDigest => digest(author.to_s),
             :parent       => parent_sha,
-            :flog         => flog[:total],
-            :flogAverage  => flog[:average]
+            :flog         => data[:flog],
+            :flogAverage  => data[:flogAverage]
     end
 
     def files

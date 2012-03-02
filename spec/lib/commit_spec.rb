@@ -28,7 +28,6 @@ describe Centurion::Commit do
     let(:flog_scores) {{
       :total   => 5.5,
       :average => 2.3,
-      :method  => 'File#open'
     }}
 
     Centurion::TestRepoCommits.each do |test_commit, files|

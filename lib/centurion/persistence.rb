@@ -20,10 +20,6 @@ module Centurion
       Centurion.db.bucket 'runs'
     end
 
-    def commit_caches_bucket
-      Centurion.db.bucket 'commit_caches'
-    end
-
     def authors_bucket
       Centurion.db.bucket "#{project_name}_authors"
     end
@@ -34,10 +30,6 @@ module Centurion
 
     def files_bucket
       Centurion.db.bucket "#{project_name}_files"
-    end
-
-    def methods_bucket
-      Centurion.db.bucket "#{project_name}_methods"
     end
 
     def run_key

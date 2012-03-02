@@ -16,11 +16,8 @@ module Centurion
     def meter
       flog = {}
       Flog.new(contents, name).meter do |method_flog|
-        method = Method.new :name => method_flog[:method],
-                            :file => self
-
         flog = method_flog.slice :average, :total
-        method.update method_flog
+        break
       end
 
       commit.totals   << flog[:total].to_f

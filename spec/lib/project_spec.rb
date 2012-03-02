@@ -106,56 +106,8 @@ describe Centurion::Project do
     it { should == "test_repo_files" }
   end
 
-  describe '#methods_bucket' do
-    subject { project.methods_bucket.name }
-    it { should == "test_repo_methods" }
-  end
-
   describe '#runs_bucket' do
     subject { project.runs_bucket.name }
     it { should == "runs" }
   end
-
-	describe 'method analysis' do
-
-    let(:sha)               {	"c96fc1175a33ee5d398e40d7cfed6fc702188cbd" }
-    let(:previous_sha)      { "702089b0b487e59d85e3a39d56eb0fdba85dbf2c" }
-    let(:file)              { commits_and_files.detect {|c,_| c.sha == sha }.last[0] } # cleese.rb
-    let(:commit)            { commits_and_files.detect {|c,_| c.sha == sha }.first }
-    let(:previous_commit)   { commits_and_files.detect {|c,_| c.sha == previous_sha }.first }
-    let(:name)              { 'Cleese#name'                              }
-    let(:method)            { Centurion::Method.new options              }
-    let(:options) {{
-      :file => file,
-      :name => name,
-      :commit => commit,
-      :project => project
-    }}
-
-		subject {
-      project.run!
-      data = nil
-      begin
-        data = project.methods_bucket.get(method.key).data
-      rescue Riak::HTTPFailedRequest
-        sleep 0.3
-        @retries ||= 0
-        @retries += 1
-        retry if @retries < 10
-      end
-      data
-		}
-
-		it 'creates a record' do
-			project.methods_bucket.exists?(method.key)
-		end
-
-		it 'calculates a score' do
-			subject['flog'].should be_within(0.1).of(3.6)
-		end
-
-		it 'records method name' do
-			subject['name'].should == name
-		end
-	end
 end
