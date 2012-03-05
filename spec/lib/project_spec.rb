@@ -83,12 +83,6 @@ describe Centurion::Project do
         project.projects_bucket.exists? project.name
       }
     end
-
-    it 'stores a cache of all commit keys' do
-      project.commit_cache.should be_nil
-      subject
-      project.commit_cache.data['shas'].should == project.commits.map(&:sha)
-    end
   end
 
   describe '#commits_bucket' do

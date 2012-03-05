@@ -15,15 +15,19 @@ module Centurion
     end
 
     def run! run_options = {}
-      @verbose   = run_options[:verbose]
-      @beginning = @ending = nil
-      @count     = 0
+      @verbose        = run_options[:verbose]
+      @beginning      = nil
+      @ending         = nil
+      @metered_commit = nil
+      @count          = 0
 
       commits do |commit|
+        commit.metered_child = @metered_commit
         next if commits_bucket.exists? commit.key
         puts "processing #{commit.sha}" if verbose
 
         commit.meter
+        @metered_commit = commit
 
         self.count += 1
         @ending  ||= commit

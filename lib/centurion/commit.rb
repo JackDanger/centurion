@@ -5,7 +5,7 @@ module Centurion
     include Persistence
 
     attr_reader   :totals,  :averages
-    attr_accessor :project
+    attr_accessor :project, :metered_child
 
     def initialize *args
       super
