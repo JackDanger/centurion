@@ -17,6 +17,9 @@
         body {
           padding-top: 60px;
         }
+        #flogChart, #flogAverageChart {
+          height: 200px;
+        }
       /*]]>*/
     </style>
     <script src='modernizr-1.6.min.js' type='text/javascript'></script>
@@ -24,6 +27,8 @@
     <script src='underscore.js' type='text/javascript'></script>
     <script src='backbone.js' type='text/javascript'></script>
     <script src='riak.js' type='text/javascript'></script>
+    <script src='highcharts.js' type='text/javascript'></script>
+    <script src='charts.js' type='text/javascript'></script>
     <script src='browser.js' type='text/javascript'></script>
   </head>
   <body>
@@ -74,7 +79,8 @@
   <script id='project-template' type='text/template'>
     <div id='project'>
       <h5>Project Files</h5>
-      <div class='commitlist'></div>
+      <div id='flogChart'></div>
+      <div id='flogAverageChart'></div>
       <ul class='sourcelist'>
         <% _.each(sourceList, function(source) { %> <li><a href="#source/<%= source.filename %>"><%= source.filename %></a></li> <% }); %>
       </ul>

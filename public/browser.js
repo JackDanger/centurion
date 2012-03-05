@@ -100,10 +100,8 @@ ProjectView = Backbone.View.extend({
     }));
     return this;
   },
-  renderCommits: function(commitList) {
-    return _.each(commitList.models, function(model) {
-      return console.log(model);
-    });
+  renderCommits: function(commits) {
+    return new Chart.commits(this.project, commits);
   }
 });
 
@@ -111,7 +109,6 @@ ProjectList = Backbone.Collection.extend({
   model: Project,
   url: '/riak/projects?keys=true',
   parse: function(response, xhr) {
-    console.log(response);
     return _.map(response.keys, function(bucket) {
       return {
         name: bucket

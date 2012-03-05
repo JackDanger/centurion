@@ -67,16 +67,14 @@ ProjectView = Backbone.View.extend
                     sourceList: this.model.sourceList.toJSON(),
                   })
     this
-  renderCommits: (commitList) ->
-    _.each commitList.models, (model) ->
-      console.log model
+  renderCommits: (commits) ->
+    new Chart.commits this.project, commits
 
 ProjectList = Backbone.Collection.extend
 
   model: Project
   url: '/riak/projects?keys=true'
   parse: (response, xhr) ->
-    console.log response
     _.map response.keys, (bucket) -> {name: bucket}
 
 ProjectListView = Backbone.View.extend
