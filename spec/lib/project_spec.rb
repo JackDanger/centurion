@@ -32,7 +32,7 @@ describe Centurion::Project do
 
   describe '#commits' do
     subject { project.commits }
-    it { should == Grit::Repo.new(project_root).commits.reverse }
+    it { should == Grit::Repo.new(project_root).commits }
   end
 
   describe 'project analysis' do
