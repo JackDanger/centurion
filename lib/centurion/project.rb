@@ -19,9 +19,10 @@ module Centurion
       @beginning = @ending = nil
       @count     = 0
 
-      commits.each do |commit|
+      commits do |commit|
         next if commits_bucket.exists? commit.key
         puts "processing #{commit.sha}" if verbose
+
         commit.meter
 
         self.count += 1
@@ -57,12 +58,31 @@ module Centurion
     end
 
     def commits(batch_size = 200)
-      Commit.find_all(repo,
-                      'HEAD',
-                      :max_count => 1_000_000
+      found = []
+      offset = 0
+      begin
+        batch = commit_batch batch_size, offset
+        if block_given?
+          batch.each do |commit|
+            yield commit
+          end
+        else
+          found += batch
+        end
+        offset += batch_size
+      end until batch.size < batch_size
+      found unless block_given?
+    end
+
+    protected
+
+    def commit_batch limit, offset
+      Commit.find_all(repo, 'HEAD',
+                      :max_count => limit,
+                      :skip      => offset
                      ).each { |commit|
                        commit.project = self
-                     }.reverse
+                     }
     end
   end
 end
