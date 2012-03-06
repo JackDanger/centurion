@@ -56,14 +56,14 @@ module Centurion
     end
 
     def last_changed
-      File.last_changed self, commit
+      @last_changed ||= File.last_changed self, commit
     end
 
     def self.last_changed file, commit
       return if commit.parents.empty?
       cmd = "git log --name-only #{commit.sha}^ -- '#{file.name}' | egrep '^commit [a-g0-9]{40}+$' | cut -d ' ' -f 2 | head -n 1 "
       sha = `cd #{commit.project.root} && #{cmd}`.chomp
-      found = commit.project.commits.detect {|c| c.sha == sha }
+      found = Commit.find_all(commit.project.repo, sha, :max_count => 1).first
       found && found.sha
     end
 
