@@ -46,6 +46,7 @@ module Centurion
     def update flog
       store files_bucket, key,
             :sha          => commit.sha,
+            :name         => name,
             :processedAt  => project.run_at,
             :flog         => flog[:total],
             :flogAverage  => flog[:average]
