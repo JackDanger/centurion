@@ -14,10 +14,7 @@ module Centurion
     end
 
     def meter
-      files.each do |file|
-        file.meter
-        print '.' if project.verbose?
-      end
+      files.each &:meter
 
       puts '' if project.verbose?
 

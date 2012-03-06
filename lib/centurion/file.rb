@@ -14,10 +14,19 @@ module Centurion
     end
 
     def meter
-      unless flog = calculated_unchanged_score
+      if flog = calculated_unchanged_score
+        if project.verbose?
+          print '>'
+          STDOUT.flush
+        end
+      else
         Flog.new(contents, name).meter do |method_flog|
           flog = method_flog.slice :average, :total
           break
+        end
+        if project.verbose?
+          print '.'
+          STDOUT.flush
         end
       end
       flog ||= {}
