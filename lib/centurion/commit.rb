@@ -50,10 +50,18 @@ module Centurion
     end
 
     def files
-      find_tree = "git ls-tree -r #{tree.id} | awk '{print $4}' | egrep \\.rb$"
-      file_list = `cd #{project.root} && #{find_tree}`
+      puts "looking for files in #{sha}"
+      #find_tree = "git ls-tree -r #{tree.id} | awk '{print $4}' | egrep \\.rb$"
+      find_files = if parent_sha
+        "git diff #{sha} #{parent_sha} --name-only | egrep \\.rb$"
+      else
+        "git show #{sha} --name-only --oneline | tail +2 | egrep \\.rb$"
+      end
+      file_list = `cd #{project.root} && #{find_files}`
       files = file_list.split("\n")
-      warn "No Ruby source files found in #{project.root}! (at #{sha})" if files.empty?
+      puts "found #{files.size} files:"
+      pp files
+      warn "No Ruby source files changed in #{sha})" if files.empty?
       files.map do |filename|
         File.new :commit => self,
                  :name   => filename

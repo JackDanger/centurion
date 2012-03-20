@@ -35,7 +35,7 @@ SourceList = Backbone.Collection.extend({
     mapper = new RiakMapper(Riak, this.project.get('name'));
     mapper.map({
       source: function(data) {
-        return [Riak.mapValuesJson(data)[0].file];
+        return [Riak.mapValuesJson(data)];
       }
     });
     mapper.reduce({

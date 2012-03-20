@@ -23,7 +23,7 @@ SourceList = Backbone.Collection.extend
   fetch: () ->
     collection = this
     mapper = new RiakMapper Riak, this.project.get('name')
-    mapper.map source: (data) -> [Riak.mapValuesJson(data)[0].file]
+    mapper.map source: (data) -> [Riak.mapValuesJson(data)]
     mapper.reduce
       source: (filenames) ->
         seen = {}
